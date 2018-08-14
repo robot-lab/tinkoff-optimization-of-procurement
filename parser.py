@@ -70,14 +70,11 @@ class Parser:
         return df
 
 
-# Test basic functionality.
-def main():
+"""
+Example of using parser:
     parser = Parser()
     df = parser.parse("data/food.csv", to_list=True)
-    # print(df)
+    print(df)
     df.plot(figsize=(15, 10))
     plt.show()
-
-
-if __name__ == '__main__':
-    main()
+"""
