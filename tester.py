@@ -4,6 +4,12 @@ from sklearn import metrics
 
 class Tester:
     def __init__(self, file_name: str, border=0.5, relevance=None):
+        """
+        Initializing object of main class with testing algorithm
+        :param file_name: name of the .json file with configuration
+        :param border: the accuracy boundary at which the algorithm is considered to be exact
+        :param relevance: table of weights
+        """
         with open(file_name, 'r') as f:
             self.__parsed_json = json.loads(f.read())
 
@@ -17,19 +23,39 @@ class Tester:
             raise ValueError("No method with given name")
 
     def test(self, test_sample, validation_samples):
+        """
+        :param test_sample: list of lists with predicted data
+        :param validation_samples: list of lists with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
         return self.__tester.test(test_sample, validation_samples)
 
     def quality_control(self, test_sample, validation_samples):
+        """
+        :param test_sample: list of lists with predicted data
+        :param validation_samples: list of lists with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
         return self.__tester.quality_control(test_sample, validation_samples)
 
 
 class Jaccard:
     def __init__(self, border=0.5, relevance=None):
+        """
+        Initializing object of testing algorithm's class with Jaccard index
+        :param border: the accuracy boundary at which the algorithm is considered to be exact
+        :param relevance: table of weights
+        """
         self.__border = border
         self.__relevance = relevance
         self.__num_dishes = len(self.__relevance)
 
     def test_check(self, validation_samples, test_sample):
+        """
+        :param test_sample: list with predicted data
+        :param validation_samples: list with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
         out_min = [min(validation_samples[i], test_sample[i]) for i in range(self.__num_dishes)]
         out_max = [max(validation_samples[i], test_sample[i]) for i in range(self.__num_dishes)]
 
@@ -42,24 +68,49 @@ class Jaccard:
         return numerator / denominator
 
     def test(self, validation_samples, test_sample):
+        """
+        :param test_sample: list of lists with predicted data
+        :param validation_samples: list of lists with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
         num_checks = len(validation_samples)
         result = [self.test_check(validation_samples[i], test_sample[i]) for i in range(num_checks)]
         return sum(result) / num_checks
 
     def quality_control(self, validation_samples, test_sample):
+        """
+        :param test_sample: list of lists with predicted data
+        :param validation_samples: list of lists with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
         return self.test(test_sample, validation_samples) > self.__border
 
 
 class MeanSquaredError:
     def __init__(self, border=0.5, relevance=None):
+        """
+        Initializing object of testing algorithm's class with mean squared error from sklearn packet
+        :param border: the accuracy boundary at which the algorithm is considered to be exact
+        :param relevance: table of weights
+        """
         self.__border = border
         self.__relevance = relevance
 
     def test(self, validation_samples, test_sample):
-        rel = [self.__relevance for i in range(len(validation_samples))]
+        """
+        :param test_sample: list of lists with predicted data
+        :param validation_samples: list of lists with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
+        rel = [self.__relevance for _ in range(len(validation_samples))]
         return metrics.mean_squared_error(validation_samples, test_sample, rel)
 
     def quality_control(self, validation_samples, test_sample):
+        """
+        :param test_sample: list of lists with predicted data
+        :param validation_samples: list of lists with known data
+        :return: a numerical estimate of the accuracy of the algorithm
+        """
         return self.test(validation_samples, test_sample) > self.__border
 
 
