@@ -3,11 +3,25 @@ import json
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-# TODO(Oleg): need to write docs for your methods.
+# TODO(Oleg): need to write DESCRIPTIVE docs for your methods. You shouldn't
+#             use copy-paste!
 class Tester:
 
     def __init__(self, config_filename="ml_config.json", border=0.5,
                  relevance=None):
+        """
+        Initializing object of main class with testing algorithm.
+
+        :param config_filename: str
+            Name of the json file with configuration.
+
+        :param border: float
+            The accuracy boundary at which the algorithm is considered to be
+            exact.
+
+        :param relevance: list
+            Table of weights.
+        """
         with open(config_filename, 'r') as f:
             self.__parsed_json = json.loads(f.read())
 
@@ -21,9 +35,33 @@ class Tester:
             raise ValueError("No method with given name!")
 
     def test(self, validation_labels, predictions):
+        """
+        brief
+
+        :param validation_labels: list
+            List of lists with known data.
+
+        :param predictions: list
+            List of lists with predicted data.
+
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
+        """
         return self.__tester.test(validation_labels, predictions)
 
     def quality_control(self, validation_labels, predictions):
+        """
+        brief
+
+        :param validation_labels: list
+            List of lists with predicted data.
+
+        :param predictions: list
+            List of lists with known data.
+
+        :return:
+            Bool value which define quality of the algorithm.
+        """
         return self.__tester.quality_control(validation_labels, predictions)
 
 
@@ -31,11 +69,33 @@ class Tester:
 class Jaccard:
 
     def __init__(self, border=0.5, relevance=None):
+        """
+        Initializing object of testing algorithm's class with Jaccard index.
+
+        :param border: float
+            The accuracy boundary at which the algorithm is considered to be
+            exact.
+
+        :param relevance: list
+            Table of weights.
+        """
         self.__border = border
         self.__relevance = relevance
         self.__num_dishes = len(self.__relevance)
 
     def test_check(self, validation_labels, predictions):
+        """
+        brief
+
+        :param validation_labels: list
+            List with known data.
+
+        :param predictions: list
+            List with predicted data.
+
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
+        """
         out_min = [min(validation_labels[i],
                        predictions[i]) for i in range(self.__num_dishes)]
         out_max = [max(validation_labels[i],
@@ -50,22 +110,69 @@ class Jaccard:
         return numerator / denominator
 
     def test(self, validation_labels, predictions):
+        """
+        brief
+
+        :param validation_labels: list
+            List of lists with known data.
+
+        :param predictions: list
+            List of lists with predicted data.
+
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
+        """
         num_checks = len(validation_labels)
         result = [self.test_check(validation_labels[i],
                                   predictions[i]) for i in range(num_checks)]
         return sum(result) / num_checks
 
     def quality_control(self, validation_labels, predictions):
+        """
+        brief
+
+        :param validation_labels: list
+            List of lists with known data.
+
+        :param predictions: list
+            List of lists with predicted data.
+
+        :return: bool
+            Bool value which define quality of the algorithm.
+        """
         return self.test(validation_labels, predictions) < self.__border
 
 
 class MeanSquaredError:
 
     def __init__(self, border=0.5, relevance=None):
+        """
+        Initializing object of testing algorithm's class with Jaccard index.
+
+        :param border: float
+            The accuracy boundary at which the algorithm is considered to be
+            exact.
+
+        :param relevance: list
+            Table of weights.
+        """
         self.__border = border
         self.__relevance = relevance
 
-    def test(self, validation_labels, predictions, r2=False):
+    @staticmethod
+    def test(validation_labels, predictions, r2=False):
+        """
+        brief
+
+        :param validation_labels: list
+            List of lists with known data.
+
+        :param predictions: list
+            List of lists with predicted data.
+
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
+        """
         # TODO(Oleg): rel coefficient doesn't work!
         # rel = [self.__relevance for _ in range(len(validation_labels))]
 
@@ -78,6 +185,18 @@ class MeanSquaredError:
         return mse
 
     def quality_control(self, validation_labels, predictions):
+        """
+        brief
+
+        :param validation_labels: list
+            List of lists with predicted data.
+
+        :param predictions: list
+            List of lists with known data.
+
+        :return:
+            Bool value which define quality of the algorithm.
+        """
         return self.test(validation_labels, predictions) < self.__border
 
 
