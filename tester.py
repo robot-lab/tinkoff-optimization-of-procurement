@@ -189,10 +189,10 @@ class MeanSquaredError:
         brief
 
         :param validation_labels: list
-            List of lists with predicted data.
+            List of lists with known data.
 
         :param predictions: list
-            List of lists with known data.
+            List of lists with predicted data.
 
         :return:
             Bool value which define quality of the algorithm.
