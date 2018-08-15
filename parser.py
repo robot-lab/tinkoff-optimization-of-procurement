@@ -1,10 +1,12 @@
+import abc
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-class Parser:
-    @staticmethod
-    def clean_data(df):
+class IParser(abc.ABC):
+
+    def clean_data(self, df):
         """
         Clean data frame from NaN values.
         Method will be improved when we get dataset.
@@ -17,8 +19,7 @@ class Parser:
         """
         return df.dropna()
 
-    @staticmethod
-    def to_list(df):
+    def to_list(self, df):
         """
         Convert data frame to list.
 
@@ -30,8 +31,7 @@ class Parser:
         """
         return df.values.tolist()
 
-    @staticmethod
-    def one_hot_encoding(df):
+    def one_hot_encoding(self, df):
         """
         Convert categorical variable into dummy/indicator variables.
 
@@ -43,6 +43,7 @@ class Parser:
         """
         return pd.get_dummies(df)
 
+    @abc.abstractmethod
     def parse(self, filepath_or_buffer, to_list=False, **kwargs):
         """
         Parse data from csv, clean and return it as data frame or list.
@@ -69,11 +70,31 @@ class Parser:
             return self.to_list(df)
         return df
 
+    @abc.abstractmethod
+    def get_train_data(self):
+        """
+        Get data for model training.
+
+        :return: tuple of two array-like, sparse matrix
+            Returns parsed data.
+        """
+        raise NotImplementedError("Called abstract class method!")
+
+    @abc.abstractmethod
+    def get_validation_data(self):
+        """
+        Get data for model prediction.
+
+        :return: tuple of two array-like, sparse matrix
+            Returns parsed data.
+        """
+        raise NotImplementedError("Called abstract class method!")
+
 
 """
-Example of using parser:
+Example of using parsers:
     parser = Parser()
-    df = parser.parse("data/food.csv", to_list=True)
+    df = parser.parse("data/food/food.csv", to_list=True)
     print(df)
     df.plot(figsize=(15, 10))
     plt.show()

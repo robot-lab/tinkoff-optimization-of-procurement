@@ -28,7 +28,7 @@
     {
       "class": "logging.handlers.RotatingFileHandler",
       "formatter": "precise",
-      "filename": "App.log",
+      "filename": "app.log",
       "maxBytes": 100000,
       "backupCount": 2
     }
