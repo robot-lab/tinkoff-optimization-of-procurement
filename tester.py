@@ -22,7 +22,7 @@ class Tester:
         :param relevance: list
             Table of weights.
         """
-        with open(config_filename, 'r') as f:
+        with open(config_filename, "r") as f:
             self.__parsed_json = json.loads(f.read())
 
         self.__bad_metric_alarm = bool(self.__parsed_json["bad_metric_alarm"])
