@@ -1,0 +1,4 @@
+{
+  "metric_name": "MeanSquaredError",
+  "bad_metric_alarm": "True"
+}
