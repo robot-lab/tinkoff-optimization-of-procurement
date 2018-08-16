@@ -1,5 +1,6 @@
 import abc
 import json
+
 from sklearn.metrics import mean_squared_error, r2_score
 
 
@@ -13,7 +14,8 @@ class Tester:
             Name of the json file with configuration.
 
         :param border: float
-            The accuracy boundary at which the algorithm is considered to be exact.
+            The accuracy boundary at which the algorithm is considered to be
+            exact.
         """
         with open(config_filename, "r") as f:
             self.__parsed_json = json.loads(f.read())
@@ -44,7 +46,8 @@ class Tester:
         """
         return self.__tester.test(validation_labels, predictions)
 
-    def quality_control(self, validation_labels, predictions, invert_comparison=False):
+    def quality_control(self, validation_labels, predictions,
+                        invert_comparison=False):
         """
         Function to get threshold estimation of the accuracy of the algorithm.
 
@@ -61,7 +64,8 @@ class Tester:
             Bool value which define quality of the algorithm.
         """
 
-        return self.__tester.quality_control(validation_labels, predictions, invert_comparison)
+        return self.__tester.quality_control(validation_labels, predictions,
+                                             invert_comparison)
 
 
 class Metric(abc.ABC):
@@ -71,7 +75,8 @@ class Metric(abc.ABC):
         Initializing object of testing algorithm's class.
 
         :param border: float
-            The accuracy boundary at which the algorithm is considered to be exact.
+            The accuracy boundary at which the algorithm is considered to be
+            exact.
         """
         self.border = border
 
@@ -91,7 +96,8 @@ class Metric(abc.ABC):
         """
         raise NotImplementedError("Called abstract class method!")
 
-    def quality_control(self, validation_labels, predictions, invert_comparison=False):
+    def quality_control(self, validation_labels, predictions,
+                        invert_comparison=False):
         """
         Function to get threshold estimation of the accuracy of the algorithm.
 
@@ -129,8 +135,10 @@ class Jaccard(Metric):
             A numerical estimate of the accuracy of the algorithm.
         """
         num_dishes = len(validation_labels)
-        out_min = [min(validation_labels[i], predictions[i]) for i in range(num_dishes)]
-        out_max = [max(validation_labels[i], predictions[i]) for i in range(num_dishes)]
+        out_min = [min(validation_labels[i],
+                       predictions[i]) for i in range(num_dishes)]
+        out_max = [max(validation_labels[i],
+                       predictions[i]) for i in range(num_dishes)]
 
         numerator, denominator = 0, 0
 
@@ -142,7 +150,8 @@ class Jaccard(Metric):
 
     def test(self, validation_labels, predictions):
         num_checks = len(validation_labels)
-        result = [self.test_check(validation_labels[i], predictions[i]) for i in range(num_checks)]
+        result = [self.test_check(validation_labels[i],
+                                  predictions[i]) for i in range(num_checks)]
         return sum(result) / num_checks
 
 
