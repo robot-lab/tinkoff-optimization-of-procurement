@@ -1,15 +1,15 @@
 import abc
 import json
-from sklearn import metrics
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 class Tester:
 
-    def __init__(self, config_filename, border=0.5):
+    def __init__(self, config_filename="ml_config.json", border=0.5):
         """
         Initializing object of main class with testing algorithm.
 
-        :param config_filename: string
+        :param config_filename: str
             Name of the json file with configuration.
 
         :param border: float
@@ -33,10 +33,10 @@ class Tester:
         """
         Main testing function.
 
-        :param predictions: list of lists
+        :param predictions: array-like, sparse matrix
             Predicted data.
 
-        :param validation_labels: list of lists
+        :param validation_labels: array-like, sparse matrix
             Known data.
 
         :return: float
@@ -44,20 +44,24 @@ class Tester:
         """
         return self.__tester.test(validation_labels, predictions)
 
-    def quality_control(self, validation_labels, predictions):
+    def quality_control(self, validation_labels, predictions, invert_comparison=False):
         """
         Function to get threshold estimation of the accuracy of the algorithm.
 
-        :param predictions: list of lists
+        :param predictions: array-like, sparse matrix
             Predicted data.
 
-        :param validation_labels: list of lists
+        :param validation_labels: array-like, sparse matrix
             Known data.
+
+        :param invert_comparison: bool
+            Bool value that changes the direction of comparison
 
         :return: float
             Bool value which define quality of the algorithm.
         """
-        return self.__tester.quality_control(validation_labels, predictions)
+
+        return self.__tester.quality_control(validation_labels, predictions, invert_comparison)
 
 
 class Metric(abc.ABC):
@@ -76,10 +80,10 @@ class Metric(abc.ABC):
         """
         Main testing function.
 
-        :param predictions: list of lists
+        :param predictions: array-like, sparse matrix
             Predicted data.
 
-        :param validation_labels: list of lists
+        :param validation_labels: array-like, sparse matrix
             Known data.
 
         :return: float
@@ -87,19 +91,24 @@ class Metric(abc.ABC):
         """
         raise NotImplementedError("Called abstract class method!")
 
-    def quality_control(self, validation_labels, predictions):
+    def quality_control(self, validation_labels, predictions, invert_comparison=False):
         """
         Function to get threshold estimation of the accuracy of the algorithm.
 
-        :param predictions: list of lists
+        :param predictions: array-like, sparse matrix
             Predicted data.
 
-        :param validation_labels: list of lists
+        :param validation_labels: array-like, sparse matrix
             Known data.
+
+        :param invert_comparison: bool
+            Bool value that changes the direction of comparison
 
         :return: bool
             Bool value which define quality of the algorithm.
         """
+        if invert_comparison:
+            return self.test(validation_labels, predictions) > self.border
         return self.test(validation_labels, predictions) < self.border
 
 
@@ -119,7 +128,6 @@ class Jaccard(Metric):
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-
         num_dishes = len(validation_labels)
         out_min = [min(validation_labels[i], predictions[i]) for i in range(num_dishes)]
         out_max = [max(validation_labels[i], predictions[i]) for i in range(num_dishes)]
@@ -140,8 +148,27 @@ class Jaccard(Metric):
 
 class MeanSquaredError(Metric):
 
-    def test(self, validation_labels, predictions):
-        return metrics.mean_squared_error(validation_labels, predictions)
+    def test(self, validation_labels, predictions, r2=False):
+        """
+        Main testing function.
+
+        :param validation_labels: list
+            List of lists with known data.
+
+        :param predictions: list
+            List of lists with predicted data.
+
+        :param r2: bool
+            Flag for additional metric.
+
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
+        """
+        mse = mean_squared_error(validation_labels, predictions)
+        # Explained variance score (r2_score): 1 is perfect prediction.
+        if r2:
+            return mse, r2_score(validation_labels, predictions)
+        return mse
 
 
 class MeanF1Score(Jaccard):
@@ -152,9 +179,6 @@ class MeanF1Score(Jaccard):
         p = conj / len(predictions)
         r = conj / len(validation_labels)
         return 2 * p * r / (p + r)
-
-    def quality_control(self, validation_labels, predictions):
-        return self.test(validation_labels, predictions) > self.border
 
 
 def tester_testing():
