@@ -1,7 +1,7 @@
 import abc
 
 
-class IAlgorithm(abc.ABC):
+class IModel(abc.ABC):
 
     @abc.abstractmethod
     def train(self, train_samples, train_labels):
