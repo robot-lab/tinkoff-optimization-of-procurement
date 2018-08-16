@@ -170,6 +170,9 @@ class MeanSquaredError:
         :param predictions: list
             List of lists with predicted data.
 
+        :param r2: bool
+            Flag for additional metric.
+
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
