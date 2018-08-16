@@ -1,4 +1,4 @@
 {
-  "metric_name": "MeanF1Score",
+  "metric_name": "MeanSquaredError",
   "bad_metric_alarm": "True"
 }

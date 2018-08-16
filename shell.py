@@ -4,6 +4,9 @@ import pickle
 import logger
 import tester
 
+import models.linear_model as lm
+import parsers.linear_model_parser as lmp
+
 
 @logger.decor_class_logging_error_and_time(
     "__init__", "__input", "output", "predict", "test"
@@ -89,8 +92,21 @@ class Shell:
             output_stream.write(pickle.dumps(self.__algorithm.model))
 
 
+def test_linear():
+    lin_model = lm.LinearModel()
+    lin_parser = lmp.LinearModelParser()
+    sh = Shell(lin_parser, lin_model)
+    sh.predict("data/tinkoff/train.csv")
+    sh.test()
+    # sh.save_model()
+    # sh.output()
+
+
 def main():
     logger.setup_logging()
+    test_linear()
+
+    # Example of execution:
     # sh = Shell()
     # sh.predict()
     # sh.test()
