@@ -1,212 +1,164 @@
+import abc
 import json
+from sklearn import metrics
 
-from sklearn.metrics import mean_squared_error, r2_score
 
-
-# TODO(Oleg): need to write DESCRIPTIVE docs for your methods. You shouldn't
-#             use copy-paste!
 class Tester:
 
-    def __init__(self, config_filename="ml_config.json", border=0.5,
-                 relevance=None):
+    def __init__(self, file_name, border=0.5):
         """
         Initializing object of main class with testing algorithm.
 
-        :param config_filename: str
-            Name of the json file with configuration.
+        :param file_name: string
+            Name of the .json file with configuration.
 
         :param border: float
-            The accuracy boundary at which the algorithm is considered to be
-            exact.
-
-        :param relevance: list
-            Table of weights.
+            The accuracy boundary at which the algorithm is considered to be exact.
         """
-        with open(config_filename, "r") as f:
+        with open(file_name, "r") as f:
             self.__parsed_json = json.loads(f.read())
 
-        self.__bad_metric_alarm = bool(self.__parsed_json["bad_metric_alarm"])
+        self.__bad_metric_alarm = bool(self.__parsed_json["badMetricAlarm"])
 
-        if self.__parsed_json["metric_name"] == "Jaccard":
-            self.__tester = Jaccard(border, relevance)
-        elif self.__parsed_json["metric_name"] == "MeanSquaredError":
-            self.__tester = MeanSquaredError(border, relevance)
+        if self.__parsed_json["metricName"] == "Jaccard":
+            self.__tester = Jaccard(border)
+        elif self.__parsed_json["metricName"] == "MeanSquaredError":
+            self.__tester = MeanSquaredError(border)
+        elif self.__parsed_json["metricName"] == "MeanF1Score":
+            self.__tester = MeanF1Score(border)
         else:
-            raise ValueError("No method with given name!")
+            raise ValueError("No method with given name")
 
-    def test(self, validation_labels, predictions):
+    def test(self, test_sample, validation_samples):
         """
-        brief
+        Main testing function.
 
-        :param validation_labels: list
-            List of lists with known data.
+        :param test_sample: list of lists
+            Predicted data.
 
-        :param predictions: list
-            List of lists with predicted data.
+        :param validation_samples: list of lists
+            Known data.
 
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        return self.__tester.test(validation_labels, predictions)
+        return self.__tester.test(test_sample, validation_samples)
 
-    def quality_control(self, validation_labels, predictions):
+    def quality_control(self, test_sample, validation_samples):
         """
-        brief
+        Function to get threshold estimation of the accuracy of the algorithm.
 
-        :param validation_labels: list
-            List of lists with predicted data.
+        :param test_sample: list of lists
+            Predicted data.
 
-        :param predictions: list
-            List of lists with known data.
+        :param validation_samples: list of lists
+            Known data.
 
-        :return:
-            Bool value which define quality of the algorithm.
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
         """
-        return self.__tester.quality_control(validation_labels, predictions)
+        return self.__tester.quality_control(test_sample, validation_samples)
 
 
-# TODO(Oleg, Timur, Vasily): can we separate some code in abstract class?
-class Jaccard:
+class Metric(abc.ABC):
 
-    def __init__(self, border=0.5, relevance=None):
+    def __init__(self, border=0.5):
         """
-        Initializing object of testing algorithm's class with Jaccard index.
+        Initializing object of testing algorithm's class.
 
         :param border: float
-            The accuracy boundary at which the algorithm is considered to be
-            exact.
-
-        :param relevance: list
-            Table of weights.
+            The accuracy boundary at which the algorithm is considered to be exact.
         """
-        self.__border = border
-        self.__relevance = relevance
-        self.__num_dishes = len(self.__relevance)
+        self.border = border
 
-    def test_check(self, validation_labels, predictions):
+    @abc.abstractmethod
+    def test(self, validation_samples, test_sample):
         """
-        brief
+        Main testing function.
 
-        :param validation_labels: list
-            List with known data.
+        :param test_sample: list
+            List of lists with predicted data.
 
-        :param predictions: list
-            List with predicted data.
+        :param validation_samples: list
+            List of lists with known data.
 
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        out_min = [min(validation_labels[i],
-                       predictions[i]) for i in range(self.__num_dishes)]
-        out_max = [max(validation_labels[i],
-                       predictions[i]) for i in range(self.__num_dishes)]
+        raise NotImplementedError("Called abstract class method!")
+
+    def quality_control(self, validation_samples, test_sample):
+        """
+        Function to get threshold estimation of the accuracy of the algorithm.
+
+        :param test_sample: list
+            List of lists with predicted data.
+
+        :param validation_samples: list
+            List of lists with known data.
+
+        :return: bool
+            A logic estimate of the accuracy of the algorithm.
+        """
+        return self.test(test_sample, validation_samples) < self.border
+
+
+class Jaccard(Metric):
+
+    @staticmethod
+    def test_check(validation_samples, test_sample):
+        """
+        Main testing function for one list of data.
+
+        :param test_sample: list
+            List with predicted data.
+
+        :param validation_samples: list
+            List with known data.
+
+        :return: float
+            A numerical estimate of the accuracy of the algorithm.
+        """
+
+        num_dishes = len(validation_samples)
+        out_min = [min(validation_samples[i], test_sample[i]) for i in range(num_dishes)]
+        out_max = [max(validation_samples[i], test_sample[i]) for i in range(num_dishes)]
 
         numerator, denominator = 0, 0
 
-        for k in range(self.__num_dishes):
-            numerator += self.__relevance[k] * out_min[k]
-            denominator += self.__relevance[k] * out_max[k]
+        for k in range(num_dishes):
+            numerator += out_min[k]
+            denominator += out_max[k]
 
         return numerator / denominator
 
-    def test(self, validation_labels, predictions):
-        """
-        brief
-
-        :param validation_labels: list
-            List of lists with known data.
-
-        :param predictions: list
-            List of lists with predicted data.
-
-        :return: float
-            A numerical estimate of the accuracy of the algorithm.
-        """
-        num_checks = len(validation_labels)
-        result = [self.test_check(validation_labels[i],
-                                  predictions[i]) for i in range(num_checks)]
+    def test(self, validation_samples, test_sample):
+        num_checks = len(validation_samples)
+        result = [self.test_check(validation_samples[i], test_sample[i]) for i in range(num_checks)]
         return sum(result) / num_checks
 
-    def quality_control(self, validation_labels, predictions):
-        """
-        brief
 
-        :param validation_labels: list
-            List of lists with known data.
+class MeanSquaredError(Metric):
 
-        :param predictions: list
-            List of lists with predicted data.
-
-        :return: bool
-            Bool value which define quality of the algorithm.
-        """
-        return self.test(validation_labels, predictions) < self.__border
+    def test(self, validation_samples, test_sample):
+        return metrics.mean_squared_error(validation_samples, test_sample)
 
 
-class MeanSquaredError:
-
-    def __init__(self, border=0.5, relevance=None):
-        """
-        Initializing object of testing algorithm's class with Jaccard index.
-
-        :param border: float
-            The accuracy boundary at which the algorithm is considered to be
-            exact.
-
-        :param relevance: list
-            Table of weights.
-        """
-        self.__border = border
-        self.__relevance = relevance
+class MeanF1Score(Jaccard):
 
     @staticmethod
-    def test(validation_labels, predictions, r2=False):
-        """
-        brief
+    def test_check(validation_samples, test_sample):
+        conj = len(set(validation_samples) and set(test_sample))
+        p = conj / len(test_sample)
+        r = conj / len(validation_samples)
+        return 2 * p * r / (p + r)
 
-        :param validation_labels: list
-            List of lists with known data.
-
-        :param predictions: list
-            List of lists with predicted data.
-
-        :param r2: bool
-            Flag for additional metric.
-
-        :return: float
-            A numerical estimate of the accuracy of the algorithm.
-        """
-        # TODO(Oleg): rel coefficient doesn't work!
-        # rel = [self.__relevance for _ in range(len(validation_labels))]
-
-        # # The mean squared error: 0 is perfect prediction.
-        mse = mean_squared_error(validation_labels, predictions)
-
-        # Explained variance score (r2_score): 1 is perfect prediction.
-        if r2:
-            return mse, r2_score(validation_labels, predictions)
-        return mse
-
-    def quality_control(self, validation_labels, predictions):
-        """
-        brief
-
-        :param validation_labels: list
-            List of lists with known data.
-
-        :param predictions: list
-            List of lists with predicted data.
-
-        :return:
-            Bool value which define quality of the algorithm.
-        """
-        return self.test(validation_labels, predictions) < self.__border
+    def quality_control(self, validation_samples, test_sample):
+        return self.test(test_sample, validation_samples) > self.border
 
 
-# TODO(Oleg): put this code in separate function for testing this classes.
 if __name__ == "__main__":
-    relevance_table = [1, 5, 4, 3, 1, 2, 1]
-    tester = Tester("ml_config.json", 0.5, relevance_table)
+    tester = Tester("config.json", 0.5)
 
     sv = [[0, 1, 2, 0, 1, 0, 0]]
     predict = [[0, 2, 1, 1, 1, 0, 0]]
