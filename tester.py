@@ -158,7 +158,7 @@ class MeanF1Score(Jaccard):
 
 
 if __name__ == "__main__":
-    tester = Tester("config.json", 0.5)
+    tester = Tester("ml_config.json", 0.5)
 
     sv = [[0, 1, 2, 0, 1, 0, 0]]
     predict = [[0, 2, 1, 1, 1, 0, 0]]
