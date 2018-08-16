@@ -1,9 +1,9 @@
 import math
 
-import parser
+from parsers import parser
 
 
-class TinkoffParser(parser.IParser):
+class LinearModelParser(parser.IParser):
 
     __PROPORTION = 0.7
 
