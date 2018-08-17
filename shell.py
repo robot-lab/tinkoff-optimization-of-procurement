@@ -9,7 +9,7 @@ import parsers.linear_model_parser as lmp
 
 
 @logger.decor_class_logging_error_and_time(
-    "__init__", "__input", "output", "predict", "test"
+    "__init__", "__input", "output", "predict", "test", "save_model"
 )
 class Shell:
 
@@ -98,8 +98,7 @@ def test_linear():
     sh = Shell(lin_parser, lin_model)
     sh.predict("data/tinkoff/train.csv")
     sh.test()
-    # sh.save_model()
-    # sh.output()
+    sh.output()
 
 
 def main():
