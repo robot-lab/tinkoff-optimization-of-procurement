@@ -1,10 +1,15 @@
+import json
 import logger
 import pickle
 import tester
 
+import numpy as np
 import pandas as pd
 
 import models.linear_model as lm
+import models.k_nearest_neighbors as knn
+import models.random_forest as rf
+
 import parsers.linear_model_parser as lmp
 
 
@@ -13,15 +18,41 @@ import parsers.linear_model_parser as lmp
 )
 class Shell:
 
-    def __init__(self, parser_instance, algorithm_instance):
+    def __init__(self, config_filename="ml_config.json",
+                 parser_instance=None, model_instance=None):
         """
         Constructor which initialize class fields.
         """
         self.__validation_labels = None
-        self.__prediction = None
+        self.__predictions = None
         self.__parser = parser_instance
-        self.__algorithm = algorithm_instance
+        self.__model = model_instance
         self.__tester = tester.Tester()
+
+        if parser_instance is not None and model_instance is not None:
+            return
+
+        self.__read_config(config_filename)
+
+    def __read_config(self, config_filename):
+        with open(config_filename, "r") as f:
+            self.__parsed_json = json.loads(f.read())
+
+        model_name = self.__parsed_json["model_name"]
+        if model_name == "LinearModel":
+            self.__model = lm.LinearModel()
+            self.__parser = lmp.LinearModelParser()
+        elif model_name == "RidgeCV":
+            self.__model = lm.RidgeCVModel()
+            self.__parser = lmp.LinearModelParser()
+        elif model_name == "KNearestNeighbors":
+            self.__model = knn.KNearestNeighborsModel()
+            self.__parser = lmp.LinearModelParser()
+        elif model_name == "RandomForest":
+            self.__model = rf.ExtraTreesModel()
+            self.__parser = lmp.LinearModelParser()
+        else:
+            raise ValueError("No metric with given name!")
 
     def __input(self, filepath_or_buffer, **kwargs):
         """
@@ -42,7 +73,12 @@ class Shell:
         :param output_filename: str
             Filename to output.
         """
-        out = pd.DataFrame(self.__prediction)
+        predictions = [x.tolist() for x in self.__predictions]
+        int_prediction = [[int(round(x)) for x in lst] for lst in predictions]
+        predictions = [lmp.LinearModelParser.to_final_label2(x)
+                       for x in int_prediction]
+
+        out = pd.DataFrame(predictions, dtype=np.int64)
         out.to_csv(f"{output_filename}.csv", index=False, header=False)
 
     def predict(self, filepath_or_buffer, **kwargs):
@@ -60,23 +96,23 @@ class Shell:
             Passes additional arguments to the parser.parse method.
         """
         self.__input(filepath_or_buffer, **kwargs)
-        self.__algorithm.train(*self.__parser.get_train_data())
+        self.__model.train(*self.__parser.get_train_data())
 
         validation_samples, self.__validation_labels = \
             self.__parser.get_validation_data()
 
-        self.__prediction = self.__algorithm.predict(validation_samples,
-                                                     self.__validation_labels)
+        self.__predictions = self.__model.predict(validation_samples,
+                                                  self.__validation_labels)
 
     def test(self):
         """
         Test prediction quality of algorithm.
         """
         test_result = self.__tester.test(self.__validation_labels,
-                                         self.__prediction)
+                                         self.__predictions)
 
         quality = self.__tester.quality_control(self.__validation_labels,
-                                                self.__prediction)
+                                                self.__predictions)
 
         print(f"Metrics: {test_result}")
         print(f"Quality satisfaction: {quality}")
@@ -89,13 +125,11 @@ class Shell:
             Filename of model.
         """
         with open(f"models/{filename}.mdl", "wb") as output_stream:
-            output_stream.write(pickle.dumps(self.__algorithm.model))
+            output_stream.write(pickle.dumps(self.__model.model))
 
 
 def test_linear():
-    lin_model = lm.LinearModel()
-    lin_parser = lmp.LinearModelParser()
-    sh = Shell(lin_parser, lin_model)
+    sh = Shell()
     sh.predict("data/tinkoff/train.csv")
     sh.test()
     sh.output()

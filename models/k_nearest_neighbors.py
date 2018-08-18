@@ -1,15 +1,14 @@
 import numpy as np
 
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import RidgeCV
+from sklearn.neighbors import KNeighborsRegressor
 
 from models import model
 
 
-class LinearModel(model.IModel):
+class KNearestNeighborsModel(model.IModel):
 
     def __init__(self):
-        self.model = LinearRegression()
+        self.model = KNeighborsRegressor()
 
     def train(self, train_samples, train_labels):
         self.model.fit(train_samples, train_labels)
@@ -20,10 +19,3 @@ class LinearModel(model.IModel):
             prediction = self.model.predict(np.array(sample).reshape(1, -1))[0]
             predicts.append(prediction)
         return predicts
-
-
-class RidgeCVModel(LinearModel):
-
-    def __init__(self):
-        super().__init__()
-        self.model = RidgeCV()
