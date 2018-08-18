@@ -1,8 +1,8 @@
-import pandas as pd
-import pickle
-
 import logger
+import pickle
 import tester
+
+import pandas as pd
 
 import models.linear_model as lm
 import parsers.linear_model_parser as lmp

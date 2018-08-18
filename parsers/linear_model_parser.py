@@ -1,5 +1,6 @@
 import math
 
+import numpy as np
 import pandas as pd
 
 from parsers import parser
@@ -14,6 +15,7 @@ class LinearModelParser(parser.IParser):
         self.__list_of_instances = []
         self.__list_of_labels = []
         self.__list_of_samples = []
+        self.__menu = set()
 
     @staticmethod
     def __parse_menu(filepath_or_buffer):
@@ -22,10 +24,13 @@ class LinearModelParser(parser.IParser):
         indices = set(sorted(indices))
         return indices
 
-    @staticmethod
-    def __load_data(filepath_or_buffer):
-        df = pd.read_csv(filepath_or_buffer)
-        result = df.groupby(['chknum', 'person_id', 'month', 'day'],
+    def __load_data(self, filepath_or_buffer):
+        df = pd.read_csv(filepath_or_buffer)  # , nrows=1000)
+
+        indices = list(df["good_id"])
+        self.__menu = set(sorted(indices))
+
+        result = df.groupby(["chknum", "person_id", "month", "day"],
                             as_index=False).agg(list)
         list_of_instances = list(
             result.drop("good_id", axis=1).T.to_dict().values()
@@ -49,6 +54,15 @@ class LinearModelParser(parser.IParser):
     def __to_final_label(interim_label):
         return math.exp(interim_label) - 1
 
+    def __to_interim_label2(self, label):
+        result = [0] * (max(self.__menu) + 1)
+        for elem in label:
+            result[elem] += 1
+        return result
+
+    def __to_final_label2(self, interim_label):
+        return math.exp(interim_label) - 1
+
     def parse(self, filepath_or_buffer, to_list=False, **kwargs):
         # self.__parse_menu(filepath_or_buffer)
 
@@ -58,9 +72,8 @@ class LinearModelParser(parser.IParser):
         # print(len(self.__list_of_instances), len(self.__list_of_labels))
         # print(self.__list_of_instances[:3])
         # print(self.__list_of_labels[:3])
-        # print(list(map(self.__to_sample, self.__list_of_instances[:3])))
 
-        # print(self.__to_final_label(self.__to_interim_label([42])))
+        # print(self.__to_final_label(self.__to_interim_label(42)))
 
         self.__list_of_samples = list(
             map(self.__to_sample, self.__list_of_instances)
@@ -73,15 +86,25 @@ class LinearModelParser(parser.IParser):
     def get_train_data(self):
         train_samples = self.__list_of_samples[:self.__train_samples_num]
         train_labels = list(
-            map(self.__to_interim_label,
+            map(self.__to_interim_label2,
                 self.__list_of_labels[:self.__train_samples_num])
         )
+        # train_labels = self.__list_of_labels[:self.__train_samples_num]
+
+        # print(train_samples)
+        # print()
+        # print(train_labels)
         return train_samples, train_labels
 
     def get_validation_data(self):
         validation_samples = self.__list_of_samples[self.__train_samples_num:]
         validation_labels = list(
-            map(self.__to_interim_label,
+            map(self.__to_interim_label2,
                 self.__list_of_labels[self.__train_samples_num:])
         )
+        # validation_labels = self.__list_of_labels[self.__train_samples_num:]
+
+        # print(validation_samples)
+        # print()
+        # print(validation_labels)
         return validation_samples, validation_labels

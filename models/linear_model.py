@@ -2,6 +2,11 @@ import numpy as np
 
 from sklearn.linear_model import LinearRegression
 
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.linear_model import RidgeCV
+
+
 from models import model
 
 
