@@ -1,27 +1,80 @@
-import pandas as pd
-import pickle
-
+import importlib
+import json
 import logger
+import pickle
 import tester
 
-import models.linear_model as lm
+import numpy as np
+import pandas as pd
+
 import parsers.linear_model_parser as lmp
 
 
 @logger.decor_class_logging_error_and_time(
-    "__init__", "__input", "output", "predict", "test"
+    "__init__", "__get_class", "__read_config", "__input", "output", "predict",
+    "test", "save_model"
 )
 class Shell:
 
-    def __init__(self, parser_instance, algorithm_instance):
+    def __init__(self, config_filename="ml_config.json",
+                 parser_instance=None, model_instance=None):
         """
         Constructor which initialize class fields.
+
+        :param config_filename: str
+            brief.
+
+        :param parser_instance: subclass from parsers.IParser
+            brief.
+
+        :param model_instance: subclass from models.IModel
+            brief.
         """
         self.__validation_labels = None
-        self.__prediction = None
+        self.__predictions = None
         self.__parser = parser_instance
-        self.__algorithm = algorithm_instance
+        self.__model = model_instance
         self.__tester = tester.Tester()
+
+        if parser_instance is not None and model_instance is not None:
+            return
+
+        self.__read_config(config_filename)
+
+    @staticmethod
+    def __get_class(class_name, module_name):
+        """
+        Get instance of class with class_name from module_name.
+
+        :param class_name: str
+            Name of the class to be created.
+
+        :param module_name: str
+            Name of the module which stores class with class_name.
+
+        :return: instance of class_name from module_name
+        """
+        module = importlib.import_module(module_name)
+        class_ = getattr(module, class_name)
+        return class_()
+
+    def __read_config(self, config_filename):
+        """
+        Read machne learning parameters into this class.
+
+        :param config_filename: str
+            Name of the json file with configuration.
+        """
+        with open(config_filename, "r") as f:
+            self.__parsed_json = json.loads(f.read())
+
+        model_name = self.__parsed_json["model_name"]
+        model_module_name = self.__parsed_json["model_module_name"]
+        parser_name = self.__parsed_json["parser_name"]
+        parser_module_name = self.__parsed_json["parser_module_name"]
+
+        self.__model = self.__get_class(model_name, model_module_name)
+        self.__parser = self.__get_class(parser_name, parser_module_name)
 
     def __input(self, filepath_or_buffer, **kwargs):
         """
@@ -42,7 +95,12 @@ class Shell:
         :param output_filename: str
             Filename to output.
         """
-        out = pd.DataFrame(self.__prediction)
+        predictions = [x.tolist() for x in self.__predictions]
+        int_prediction = [[int(round(x)) for x in lst] for lst in predictions]
+        predictions = [lmp.LinearModelParser.to_final_label2(x)
+                       for x in int_prediction]
+
+        out = pd.DataFrame(predictions, dtype=np.int64)
         out.to_csv(f"{output_filename}.csv", index=False, header=False)
 
     def predict(self, filepath_or_buffer, **kwargs):
@@ -60,23 +118,23 @@ class Shell:
             Passes additional arguments to the parser.parse method.
         """
         self.__input(filepath_or_buffer, **kwargs)
-        self.__algorithm.train(*self.__parser.get_train_data())
+        self.__model.train(*self.__parser.get_train_data())
 
         validation_samples, self.__validation_labels = \
             self.__parser.get_validation_data()
 
-        self.__prediction = self.__algorithm.predict(validation_samples,
-                                                     self.__validation_labels)
+        self.__predictions = self.__model.predict(validation_samples,
+                                                  self.__validation_labels)
 
     def test(self):
         """
         Test prediction quality of algorithm.
         """
         test_result = self.__tester.test(self.__validation_labels,
-                                         self.__prediction)
+                                         self.__predictions)
 
         quality = self.__tester.quality_control(self.__validation_labels,
-                                                self.__prediction)
+                                                self.__predictions)
 
         print(f"Metrics: {test_result}")
         print(f"Quality satisfaction: {quality}")
@@ -89,17 +147,14 @@ class Shell:
             Filename of model.
         """
         with open(f"models/{filename}.mdl", "wb") as output_stream:
-            output_stream.write(pickle.dumps(self.__algorithm.model))
+            output_stream.write(pickle.dumps(self.__model.model))
 
 
 def test_linear():
-    lin_model = lm.LinearModel()
-    lin_parser = lmp.LinearModelParser()
-    sh = Shell(lin_parser, lin_model)
+    sh = Shell()
     sh.predict("data/tinkoff/train.csv")
     sh.test()
-    # sh.save_model()
-    # sh.output()
+    sh.output()
 
 
 def main():
