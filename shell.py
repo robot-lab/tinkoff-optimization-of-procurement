@@ -1,3 +1,4 @@
+import importlib
 import json
 import logger
 import pickle
@@ -6,15 +7,12 @@ import tester
 import numpy as np
 import pandas as pd
 
-import models.linear_model as lm
-import models.k_nearest_neighbors as knn
-import models.random_forest as rf
-
 import parsers.linear_model_parser as lmp
 
 
 @logger.decor_class_logging_error_and_time(
-    "__init__", "__input", "output", "predict", "test", "save_model"
+    "__init__", "__get_class", "__read_config", "__input", "output", "predict",
+    "test", "save_model"
 )
 class Shell:
 
@@ -22,6 +20,15 @@ class Shell:
                  parser_instance=None, model_instance=None):
         """
         Constructor which initialize class fields.
+
+        :param config_filename: str
+            brief.
+
+        :param parser_instance: subclass from parsers.IParser
+            brief.
+
+        :param model_instance: subclass from models.IModel
+            brief.
         """
         self.__validation_labels = None
         self.__predictions = None
@@ -34,25 +41,40 @@ class Shell:
 
         self.__read_config(config_filename)
 
+    @staticmethod
+    def __get_class(class_name, module_name):
+        """
+        Get instance of class with class_name from module_name.
+
+        :param class_name: str
+            Name of the class to be created.
+
+        :param module_name: str
+            Name of the module which stores class with class_name.
+
+        :return: instance of class_name from module_name
+        """
+        module = importlib.import_module(module_name)
+        class_ = getattr(module, class_name)
+        return class_()
+
     def __read_config(self, config_filename):
+        """
+        Read machne learning parameters into this class.
+
+        :param config_filename: str
+            Name of the json file with configuration.
+        """
         with open(config_filename, "r") as f:
             self.__parsed_json = json.loads(f.read())
 
         model_name = self.__parsed_json["model_name"]
-        if model_name == "LinearModel":
-            self.__model = lm.LinearModel()
-            self.__parser = lmp.LinearModelParser()
-        elif model_name == "RidgeCV":
-            self.__model = lm.RidgeCVModel()
-            self.__parser = lmp.LinearModelParser()
-        elif model_name == "KNearestNeighbors":
-            self.__model = knn.KNearestNeighborsModel()
-            self.__parser = lmp.LinearModelParser()
-        elif model_name == "RandomForest":
-            self.__model = rf.ExtraTreesModel()
-            self.__parser = lmp.LinearModelParser()
-        else:
-            raise ValueError("No metric with given name!")
+        model_module_name = self.__parsed_json["model_module_name"]
+        parser_name = self.__parsed_json["parser_name"]
+        parser_module_name = self.__parsed_json["parser_module_name"]
+
+        self.__model = self.__get_class(model_name, model_module_name)
+        self.__parser = self.__get_class(parser_name, parser_module_name)
 
     def __input(self, filepath_or_buffer, **kwargs):
         """
