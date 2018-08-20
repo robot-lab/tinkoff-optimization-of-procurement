@@ -12,11 +12,7 @@ import parsers.config_parsers as cnfp
 import models.model as mdl
 
 
-@logger.decor_class_logging_error_and_time(
-    "__init__", "_input", "_check_interface", "_check_interfaces", "is_debug",
-    "predictions", "get_formatted_predictions", "output", "predict", "test",
-    "save_model"
-)
+@logger.decor_class_logging_error_and_time()
 class Shell:
 
     def __init__(self, config_filename="ml_config.json"):
@@ -39,13 +35,13 @@ class Shell:
         self._model_parameters = self._config_parser["model_parameters"]
 
         self._model = self._config_parser.get_instance(
-            model_name, model_module_name, **self._model_parameters
+            model_name, model_module_name
         )
         self._parser = self._config_parser.get_instance(
-            parser_name, parser_module_name
+            parser_name, parser_module_name, debug=self.is_debug()
         )
 
-        assert self._check_interfaces()
+        # assert self._check_interfaces()
 
     def _input(self, filepath_or_buffer, **kwargs):
         """
@@ -55,7 +51,7 @@ class Shell:
         :param filepath_or_buffer: same as Parser.parse or self.predict
 
         :param kwargs: dict
-            Passes additional arguments to the parser.parse method.
+            Passes addition79al arguments to the parser.parse method.
         """
         self._parser.parse(filepath_or_buffer, to_list=True, **kwargs)
 
