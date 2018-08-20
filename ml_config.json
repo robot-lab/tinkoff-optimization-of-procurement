@@ -28,7 +28,6 @@
   },
 
   "metric_name": "MeanF1Score",
-  "bad_metric_alarm": "True",
 
   "debug": false
 }

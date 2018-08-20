@@ -25,7 +25,9 @@ class Shell:
         self._validation_labels = None
         self._predictions = None
         self._config_parser = cnfp.ConfigParser(config_filename)
-        self._tester = tester.Tester()
+        self._tester = tester.Tester(
+            self._config_parser["metric_name"]
+        )
 
         self._model_parameters = self._config_parser["model_parameters"]
         self._parser_parameters = self._config_parser["parser_parameters"]
