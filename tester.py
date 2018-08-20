@@ -106,7 +106,7 @@ class Metric(abc.ABC):
         :param invert_comparison: bool
             Bool value that changes the direction of comparison
 
-        :return: bool
+        :return: bool, optional (default=False)
             Bool value which define quality of the algorithm.
         """
         if self.__cache is None:
@@ -129,7 +129,7 @@ class MeanSquaredError(Metric):
         :param predictions: list
             List of lists with predicted data.
 
-        :param r2: bool
+        :param r2: bool, optional (default=False)
             Flag for additional metric.
 
         :return: float
@@ -195,8 +195,8 @@ class MeanF1Score(Metric):
 
         int_prediction = [int(round(x)) for x in prediction]
 
-        int_prediction = LinearModelParser.to_final_label2(int_prediction)
-        validation_label = LinearModelParser.to_final_label2(validation_label)
+        int_prediction = LinearModelParser.to_final_label(int_prediction)
+        validation_label = LinearModelParser.to_final_label(validation_label)
 
         conj = self.conjunction(int_prediction, validation_label)
 
