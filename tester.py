@@ -3,7 +3,7 @@ import json
 
 from sklearn.metrics import mean_squared_error, r2_score
 
-from parsers.linear_model_parser import LinearModelParser as lmp
+from parsers.linear_model_parser import LinearModelParser
 
 
 class Tester:
@@ -27,12 +27,8 @@ class Tester:
         self.__invert_list = ["MeanF1Score"]
 
         self.__metric_name = self.__parsed_json["metric_name"]
-        if self.__metric_name == "MeanSquaredError":
-            self.__tester = MeanSquaredError(border)
-        elif self.__metric_name == "MeanF1Score":
-            self.__tester = MeanF1Score(border)
-        else:
-            raise ValueError("No metric with given name!")
+        class_ = globals()[self.__metric_name]
+        self.__tester = class_(border)
 
     def test(self, validation_labels, predictions):
         """
@@ -110,7 +106,7 @@ class Metric(abc.ABC):
         :param invert_comparison: bool
             Bool value that changes the direction of comparison
 
-        :return: bool
+        :return: bool, optional (default=False)
             Bool value which define quality of the algorithm.
         """
         if self.__cache is None:
@@ -133,7 +129,7 @@ class MeanSquaredError(Metric):
         :param predictions: list
             List of lists with predicted data.
 
-        :param r2: bool
+        :param r2: bool, optional (default=False)
             Flag for additional metric.
 
         :return: float
@@ -156,6 +152,32 @@ class MeanF1Score(Metric):
         else:
             return conj / arr_len
 
+    @staticmethod
+    def conjunction(lst1, lst2):
+        it1 = iter(lst1)
+        it2 = iter(lst2)
+        try:
+            value1 = next(it1)
+            value2 = next(it2)
+        except StopIteration:
+            return 0
+
+        result = 0
+        while True:
+            try:
+                if value1 == value2:
+                    result += 1
+                    value1 = next(it1)
+                    value2 = next(it2)
+                elif value1 > value2:
+                    value2 = next(it2)
+                else:
+                    value1 = next(it1)
+            except StopIteration:
+                break
+
+        return result
+
     def test_check(self, validation_label, prediction):
         """
         Main testing function for one list of data.
@@ -172,11 +194,12 @@ class MeanF1Score(Metric):
         assert len(validation_label) == len(prediction)
 
         int_prediction = [int(round(x)) for x in prediction]
-        y_z = [x for x, p in zip(validation_label, int_prediction)
-               if x == p and x != 0]
-        conj = len(y_z)
-        int_prediction = lmp.to_final_label2(int_prediction)
-        validation_label = lmp.to_final_label2(validation_label)
+
+        int_prediction = LinearModelParser.to_final_label(int_prediction)
+        validation_label = LinearModelParser.to_final_label(validation_label)
+
+        conj = self.conjunction(int_prediction, validation_label)
+
         p = self.zero_check(conj, len(int_prediction))
         r = self.zero_check(conj, len(validation_label))
         if p == 0 and r == 0:
@@ -193,12 +216,11 @@ class MeanF1Score(Metric):
         :param predictions: list
             List of lists with predicted data.
 
-        :param r2: bool
-            Flag for additional metric.
-
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
+        assert self.conjunction([1, 1, 2, 3, 5], [1, 2, 4, 5]) == 3
+
         num_checks = len(validation_labels)
         result = [self.test_check(validation_labels[i],
                                   predictions[i]) for i in range(num_checks)]
