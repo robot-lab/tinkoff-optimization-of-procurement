@@ -1,5 +1,4 @@
 import abc
-import json
 
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -8,27 +7,22 @@ from parsers.linear_model_parser import LinearModelParser
 
 class Tester:
 
-    def __init__(self, config_filename="ml_config.json", border=0.5):
+    def __init__(self, metric_name="MeanF1Score", border=0.5):
         """
         Initializing object of main class with testing algorithm.
 
-        :param config_filename: str
-            Name of the json file with configuration.
+        :param metric_name: str
+            Name of the metric to check quality.
 
         :param border: float
             The accuracy boundary at which the algorithm is considered to be
             exact.
         """
-        with open(config_filename, "r") as f:
-            self.__parsed_json = json.loads(f.read())
+        self._invert_list = ["MeanF1Score"]
 
-        self.__bad_metric_alarm = bool(self.__parsed_json["bad_metric_alarm"])
-
-        self.__invert_list = ["MeanF1Score"]
-
-        self.__metric_name = self.__parsed_json["metric_name"]
-        class_ = globals()[self.__metric_name]
-        self.__tester = class_(border)
+        self._metric_name = metric_name
+        class_ = globals()[self._metric_name]
+        self._tester = class_(border)
 
     def test(self, validation_labels, predictions):
         """
@@ -43,7 +37,7 @@ class Tester:
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        return self.__tester.test(validation_labels, predictions)
+        return self._tester.test(validation_labels, predictions)
 
     def quality_control(self, validation_labels, predictions):
         """
@@ -58,9 +52,9 @@ class Tester:
         :return: float
             Bool value which define quality of the algorithm.
         """
-        invert_comparison = self.__metric_name in self.__invert_list
-        return self.__tester.quality_control(validation_labels, predictions,
-                                             invert_comparison)
+        invert_comparison = self._metric_name in self._invert_list
+        return self._tester.quality_control(validation_labels, predictions,
+                                            invert_comparison)
 
 
 class Metric(abc.ABC):
@@ -73,8 +67,8 @@ class Metric(abc.ABC):
             The accuracy boundary at which the algorithm is considered to be
             exact.
         """
-        self.__border = border
-        self.__cache = None
+        self._border = border
+        self._cache = None
 
     @abc.abstractmethod
     def test(self, validation_labels, predictions):
@@ -109,12 +103,12 @@ class Metric(abc.ABC):
         :return: bool, optional (default=False)
             Bool value which define quality of the algorithm.
         """
-        if self.__cache is None:
-            self.__cache = self.test(validation_labels, predictions)
+        if self._cache is None:
+            self._cache = self.test(validation_labels, predictions)
 
         if invert_comparison:
-            return self.__cache > self.__border
-        return self.__cache < self.__border
+            return self._cache > self._border
+        return self._cache < self._border
 
 
 class MeanSquaredError(Metric):
@@ -135,12 +129,12 @@ class MeanSquaredError(Metric):
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        self.__cache = mean_squared_error(validation_labels, predictions)
+        self._cache = mean_squared_error(validation_labels, predictions)
 
         # Explained variance score (r2_score): 1 is perfect prediction.
         if r2:
-            return self.__cache, r2_score(validation_labels, predictions)
-        return self.__cache
+            return self._cache, r2_score(validation_labels, predictions)
+        return self._cache
 
 
 class MeanF1Score(Metric):
@@ -224,18 +218,5 @@ class MeanF1Score(Metric):
         num_checks = len(validation_labels)
         result = [self.test_check(validation_labels[i],
                                   predictions[i]) for i in range(num_checks)]
-        self.__cache = sum(result) / num_checks
-        return self.__cache
-
-
-def tester_testing():
-    tester = Tester("ml_config.json", 0.5)
-
-    sv = [[0, 1, 2, 0, 1, 0, 0]]
-    predict = [[0, 2, 1, 1, 1, 0, 0]]
-
-    print(tester.test(sv, predict))
-
-
-if __name__ == "__main__":
-    tester_testing()
+        self._cache = sum(result) / num_checks
+        return self._cache
