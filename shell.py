@@ -25,23 +25,24 @@ class Shell:
         self._validation_labels = None
         self._predictions = None
         self._config_parser = cnfp.ConfigParser(config_filename)
-        self._model_parameters = dict()
         self._tester = tester.Tester()
 
-        model_name = self._config_parser["model_name"]
-        model_module_name = self._config_parser["model_module_name"]
-        parser_name = self._config_parser["parser_name"]
-        parser_module_name = self._config_parser["parser_module_name"]
         self._model_parameters = self._config_parser["model_parameters"]
+        self._parser_parameters = self._config_parser["parser_parameters"]
 
         self._model = self._config_parser.get_instance(
-            model_name, model_module_name
+            self._config_parser["model_name"],
+            self._config_parser["model_module_name"],
+            **self._model_parameters
         )
         self._parser = self._config_parser.get_instance(
-            parser_name, parser_module_name, debug=self.is_debug()
+            self._config_parser["parser_name"],
+            self._config_parser["parser_module_name"],
+            **self._parser_parameters,
+            debug=self.is_debug()
         )
 
-        # assert self._check_interfaces()
+        assert self._check_interfaces()
 
     def _input(self, filepath_or_buffer, **kwargs):
         """
@@ -51,12 +52,11 @@ class Shell:
         :param filepath_or_buffer: same as Parser.parse or self.predict
 
         :param kwargs: dict
-            Passes addition79al arguments to the parser.parse method.
+            Passes additional arguments to the parser.parse method.
         """
         self._parser.parse(filepath_or_buffer, to_list=True, **kwargs)
 
-    @staticmethod
-    def _check_interface(instance, parent_class):
+    def _check_interface(self, instance, parent_class):
         """
         Checks the classes on the according interfaces.
 
@@ -69,7 +69,7 @@ class Shell:
         :return: bool
             Results of verifying.
         """
-        return issubclass(instance, parent_class)
+        return isinstance(instance, parent_class)
 
     def _check_interfaces(self):
         """
@@ -78,8 +78,9 @@ class Shell:
         :return: bool
             Status of verifying.
         """
-        return self._check_interface(self._parser, ipar.IParser) and \
-            self._check_interface(self._model, mdl.IModel)
+        check1 = self._check_interface(self._parser, ipar.IParser)
+        check2 = self._check_interface(self._model, mdl.IModel)
+        return check1 and check2
 
     def is_debug(self, flag_name="debug"):
         """

@@ -5,7 +5,8 @@ from parsers import parser
 
 class LinearModelParser(parser.IParser):
 
-    def __init__(self, proportion=0.7, raw_data=True, debug=False):
+    def __init__(self, proportion=0.7, raw_data=True, n_rows=None,
+                 debug=False):
         self._train_samples_num = 0
         self._list_of_instances = []
         self._list_of_labels = []
@@ -13,6 +14,7 @@ class LinearModelParser(parser.IParser):
         self._menu = set()
         self._proportion = proportion
         self._raw_data = raw_data
+        self._n_rows = n_rows
         self._debug = debug
 
     @staticmethod
@@ -23,10 +25,7 @@ class LinearModelParser(parser.IParser):
         return indices
 
     def _load_data(self, filepath_or_buffer):
-        n_rows = None
-        if self._debug:
-            n_rows = 100_000
-        df = pd.read_csv(filepath_or_buffer, nrows=n_rows)
+        df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
 
         indices = list(df["good_id"])
         self._menu = set(sorted(indices))
@@ -80,6 +79,7 @@ class LinearModelParser(parser.IParser):
         )
 
         if self._debug:
+            print(len(self._list_of_instances))
             print(self._list_of_instances[:3])
             print(self._list_of_labels[:3])
             print(self._list_of_samples[:3])
@@ -94,9 +94,8 @@ class LinearModelParser(parser.IParser):
                 self._list_of_labels[:self._train_samples_num])
         )
         if self._debug:
-            train_labels = self._list_of_labels[:self._train_samples_num]
-            print(train_samples, end="\n\n")
-            print(train_labels)
+            print(train_samples[:3], end="\n\n")
+            print(train_labels[:3])
         return train_samples, train_labels
 
     def get_validation_data(self):
@@ -106,7 +105,6 @@ class LinearModelParser(parser.IParser):
                 self._list_of_labels[self._train_samples_num:])
         )
         if self._debug:
-            validation_labels = self._list_of_labels[self._train_samples_num:]
-            print(validation_samples, end="\n\n")
-            print(validation_labels)
+            print(validation_samples[:3], end="\n\n")
+            print(validation_labels[:3])
         return validation_samples, validation_labels

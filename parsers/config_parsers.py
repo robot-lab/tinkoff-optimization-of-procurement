@@ -5,10 +5,25 @@ import json
 class ConfigParser:
 
     def __init__(self, config_filename="ml_config.json"):
+        """
+        Constructor which opens config file and parses it.
+
+        :param config_filename: str, optional(default="ml_config.json")
+            Name of the json file with configuration.
+        """
         with open(config_filename, "r") as f:
             self._parsed_json = json.loads(f.read())
 
     def __getitem__(self, item):
+        """
+        Add dict-like interface: config[item]
+
+        :param item: str
+            Parameter name in config file.
+
+        :return: int, str, dict, list, bool, None
+            Value of parameter in config file.
+        """
         return self._parsed_json[item]
 
     @staticmethod
