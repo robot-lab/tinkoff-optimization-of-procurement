@@ -23,10 +23,10 @@ class LinearModelParser(parser.IParser):
         indices = set(sorted(indices))
         return indices
 
-    def __load_data(self, filepath_or_buffer, debug=True):
+    def __load_data(self, filepath_or_buffer, debug=False):
         n_rows = None
         if debug:
-            n_rows = 10_000
+            n_rows = 100_000
         df = pd.read_csv(filepath_or_buffer, nrows=n_rows)
 
         indices = list(df["good_id"])
@@ -45,7 +45,9 @@ class LinearModelParser(parser.IParser):
         return [instance["person_id"]]
 
     @staticmethod
-    def __get_absolute_date(instance):
+    def __get_absolute_date(instance, raw_data=True):
+        if raw_data:
+            return [instance["day"]] + [instance["month"]]
         return [365 * instance["day"] + 12 * instance["month"]]
 
     def __to_sample(self, instance):
