@@ -10,8 +10,8 @@ class CatBoostModel(model.IModel):
     def __init__(self, **kwargs):
         self.model = CatBoostRegressor()
 
-    def train(self, train_samples, train_labels):
-        self.model.fit(train_labels, train_samples)
+    def train(self, train_samples, train_labels, **kwargs):
+        self.model.fit(train_samples, train_labels, **kwargs)
 
     def predict(self, samples):
         predicts = []

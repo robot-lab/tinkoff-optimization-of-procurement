@@ -11,10 +11,10 @@ class LinearModel(model.IModel):
     def __init__(self, **kwargs):
         self.model = LinearRegression(**kwargs)
 
-    def train(self, train_samples, train_labels):
+    def train(self, train_samples, train_labels, **kwargs):
         self.model.fit(train_samples, train_labels)
 
-    def predict(self, samples):
+    def predict(self, samples, **kwargs):
         predicts = []
         for sample in samples:
             prediction = self.model.predict(np.array(sample).reshape(1, -1))[0]
