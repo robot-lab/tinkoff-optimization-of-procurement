@@ -3,7 +3,7 @@ from mlalgorithms import shell
 
 def test():
     sh = shell.Shell()
-    sh.predict("data/tinkoff/train.csv")
+    sh.train("data/tinkoff/train.csv")
     sh.test()
     sh.output()
 
