@@ -4,7 +4,9 @@ from mlalgorithms import shell
 def test():
     sh = shell.Shell()
     sh.train("data/tinkoff/train.csv")
-    sh.test()
+    test_result, quality = sh.test()
+    print(f"Metrics: {test_result}")
+    print(f"Quality satisfaction: {quality}")
     sh.output()
 
 

@@ -1,14 +1,14 @@
 import numpy as np
 
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import ExtraTreesRegressor
 
 from . import model
 
 
-class KNearestNeighborsModel(model.IModel):
+class ExtraTreesModel(model.IModel):
 
     def __init__(self, **kwargs):
-        self.model = KNeighborsRegressor(**kwargs)
+        self.model = ExtraTreesRegressor(**kwargs)
 
     def train(self, train_samples, train_labels, **kwargs):
         self.model.fit(train_samples, train_labels)
@@ -19,3 +19,4 @@ class KNearestNeighborsModel(model.IModel):
             prediction = self.model.predict(np.array(sample).reshape(1, -1))[0]
             predicts.append(prediction)
         return predicts
+

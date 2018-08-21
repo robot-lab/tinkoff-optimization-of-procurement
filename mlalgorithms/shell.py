@@ -108,35 +108,69 @@ class Shell:
         """
         return self._predictions
 
-    def get_formatted_predictions(self):
+    @property
+    def is_raw_data(self, flag_name="not_parse_data"):
+        """
+        Return status of the raw data flag in the parser parameters.
+
+        :param flag_name: str, optional (not_parse_data="")
+            Name of the flag in config.
+
+        :return: bool
+            Value of the flag.
+        """
+        return self._parser_parameters[flag_name]
+
+    def get_formatted_predictions(self, raw_data=False):
         """
         Format raw results of prediction.
 
-        :return: list
+        :param raw_data: bool, optional (default=False)
+            Define if shell has not parsed data.
+
+        :return: pd.DataFrame
             Formatted predictions.
         """
         predictions = [x.tolist() for x in self._predictions]
-        predictions = [[int(round(x)) for x in lst] for lst in predictions]
-        predictions = [CommonParser.to_final_label(x)
-                       for x in predictions]
-        return predictions
+
+        if not raw_data:
+            predictions = [[int(round(x)) for x in lst] for lst in predictions]
+            predictions = [CommonParser.to_final_label(x)
+                           for x in predictions]
+            formatted_output = [{
+                    "chknum": chknum,
+                    "pred": " ".join(str(x) for x in pred)
+                } for chknum, pred in zip(self._parser.chknums, predictions)
+            ]
+        else:
+            assert len(self._parser.chknums) == len(self._predictions)
+            predictions = [int(round(CommonParser.to_final_label_math(x)))
+                           for x in predictions]
+            formatted_output = [{
+                    "chknum": chknum,
+                    "pred": pred
+                } for chknum, pred in zip(self._parser.chknums, predictions)
+            ]
+            predictions = pd.DataFrame(formatted_output, dtype=np.int64)
+            predictions = predictions.groupby("chknum",
+                                              as_index=False).agg(list)
+            predictions = predictions.values.tolist()
+            formatted_output = [{
+                    "chknum": chknum,
+                    "pred": " ".join(str(x) for x in pred)
+                } for chknum, pred in predictions
+            ]
+        return pd.DataFrame(formatted_output, dtype=np.int64)
 
     def output(self, output_filename="result.csv"):
         """
         Output current prediction to filename.
 
-        :param output_filename: str, file oe buffer
+        :param output_filename: str, file or buffer
             optional (default="result.csv")
             Filename to output.
         """
-        predictions = self.get_formatted_predictions()
-        formatted_output = [{
-                "chknum": chknum,
-                "pred": " ".join(str(x) for x in pred)
-            } for chknum, pred in zip(self._parser.chknums, predictions)
-        ]
-
-        out = pd.DataFrame(formatted_output, dtype=np.int64)
+        out = self.get_formatted_predictions(raw_data=self.is_raw_data)
         out.to_csv(output_filename, index=False)
 
     def train(self, filepath_or_buffer):
@@ -151,7 +185,17 @@ class Shell:
             file could be file://localhost/path/to/table.csv.
         """
         self._parser.parse_train_data(filepath_or_buffer)
-        self._model.train(*self._parser.get_train_data())
+
+        if self._config_parser["model_name"] == "CatBoostModel":
+            train_samples, train_labels = self._parser.get_train_data()
+            train_num = int(self._parser_parameters["proportion"] *
+                            len(train_samples))
+            self._model.train(
+                train_samples[:train_num], train_labels[:train_num],
+                eval_set=(train_samples[train_num:], train_labels[train_num:])
+            )
+        else:
+            self._model.train(*self._parser.get_train_data())
 
         validation_samples, self._validation_labels = \
             self._parser.get_validation_data()
@@ -174,6 +218,9 @@ class Shell:
     def test(self):
         """
         Test prediction quality of algorithm.
+
+        :return tuple (float, float)
+            Pair of two values from tester class.
         """
         test_result = self._tester.test(self._validation_labels,
                                         self._predictions)
@@ -181,8 +228,7 @@ class Shell:
         quality = self._tester.quality_control(self._validation_labels,
                                                self._predictions)
 
-        print(f"Metrics: {test_result}")
-        print(f"Quality satisfaction: {quality}")
+        return test_result, quality
 
     def load_model(self, filename="model"):
         """

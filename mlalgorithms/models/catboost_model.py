@@ -1,17 +1,17 @@
 import numpy as np
 
-from sklearn.ensemble import ExtraTreesRegressor
+from catboost import CatBoostRegressor
 
 from . import model
 
 
-class ExtraTreesModel(model.IModel):
+class CatBoostModel(model.IModel):
 
     def __init__(self, **kwargs):
-        self.model = ExtraTreesRegressor(**kwargs)
+        self.model = CatBoostRegressor()
 
-    def train(self, train_samples, train_labels):
-        self.model.fit(train_samples, train_labels)
+    def train(self, train_samples, train_labels, **kwargs):
+        self.model.fit(train_samples, train_labels, **kwargs)
 
     def predict(self, samples):
         predicts = []
@@ -19,4 +19,3 @@ class ExtraTreesModel(model.IModel):
             prediction = self.model.predict(np.array(sample).reshape(1, -1))[0]
             predicts.append(prediction)
         return predicts
-
