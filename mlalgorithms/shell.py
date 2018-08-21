@@ -138,7 +138,7 @@ class Shell:
         out = pd.DataFrame(formatted_output, dtype=np.int64)
         out.to_csv(f"{output_filename}.csv", index=False)
 
-    def train(self, filepath_or_buffer, **kwargs):
+    def train(self, filepath_or_buffer):
         """
         Train model on input dataset.
 
@@ -148,12 +148,8 @@ class Shell:
             The string could be a URL. Valid URL schemes include http, ftp, s3,
             and file. For file URLs, a host is expected. For instance, a local
             file could be file://localhost/path/to/table.csv.
-
-        :param kwargs: dict
-            Passes additional arguments to the parser.parse method.
         """
-        self._parser.parse_train_data(filepath_or_buffer, to_list=True,
-                                      **kwargs)
+        self._parser.parse_train_data(filepath_or_buffer)
         self._model.train(*self._parser.get_train_data())
 
         validation_samples, self._validation_labels = \
@@ -162,21 +158,16 @@ class Shell:
         self._predictions = self._model.predict(validation_samples,
                                                 self._validation_labels)
 
-    def predict(self, filepath_or_buffer_set, filepath_or_buffer_menu,
-                **kwargs):
+    def predict(self, filepath_or_buffer_set, filepath_or_buffer_menu):
         """
         Make predictions on input dataset.
 
         :param filepath_or_buffer_set: same as train filepath_or_buffer.
 
         :param filepath_or_buffer_menu: same as train filepath_or_buffer.
-
-        :param kwargs: dict
-            Passes additional arguments to the parser.parse method.
         """
         self._parser.parse_test_data(filepath_or_buffer_set,
-                                     filepath_or_buffer_menu, to_list=True,
-                                     **kwargs)
+                                     filepath_or_buffer_menu)
 
         self._predictions = self._model.predict(self._parser.get_test_data())
 
