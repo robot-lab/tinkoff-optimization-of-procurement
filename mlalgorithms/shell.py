@@ -9,7 +9,7 @@ from .logger import decor_class_logging_error_and_time, setup_logging
 from .tester import Tester
 
 from .parsers.parser import IParser
-from .parsers.linear_model_parser import LinearModelParser
+from .parsers.common_parser import CommonParser
 from .parsers.config_parsers import ConfigParser
 
 from .models.model import IModel
@@ -25,12 +25,12 @@ setup_logging(log_config_path)
 @decor_class_logging_error_and_time()
 class Shell:
 
-    def __init__(self, model_exists=False):
+    def __init__(self, existing_model_name=""):
         """
         Constructor which initialize class fields.
 
-        :param model_exists: bool, optional (default=False)
-            Name of the json file with configuration.
+        :param existing_model_name: str, optional (default="")
+            Name of the existing model file.
         """
         self._validation_labels = None
         self._predictions = None
@@ -42,12 +42,14 @@ class Shell:
         self._model_parameters = self._config_parser["model_parameters"]
         self._parser_parameters = self._config_parser["parser_parameters"]
 
-        if not model_exists:
+        if not existing_model_name:
             self._model = self._config_parser.get_instance(
                 self._config_parser["model_name"],
                 self._config_parser["model_module_name"],
                 **self._model_parameters
             )
+        else:
+            self.load_model(existing_model_name)
 
         self._parser = self._config_parser.get_instance(
             self._config_parser["parser_name"],
@@ -57,18 +59,6 @@ class Shell:
         )
 
         assert self._check_interfaces()
-
-    def _input(self, filepath_or_buffer, **kwargs):
-        """
-        An additional method that loads data and divides it into test and
-        validation samples.
-
-        :param filepath_or_buffer: same as Parser.parse or self.predict
-
-        :param kwargs: dict
-            Passes additional arguments to the parser.parse method.
-        """
-        self._parser.parse(filepath_or_buffer, to_list=True, **kwargs)
 
     def _check_interface(self, instance, parent_class):
         """
@@ -126,9 +116,9 @@ class Shell:
             Formatted predictions.
         """
         predictions = [x.tolist() for x in self._predictions]
-        int_prediction = [[int(round(x)) for x in lst] for lst in predictions]
-        predictions = [LinearModelParser.to_final_label(x)
-                       for x in int_prediction]
+        predictions = [[int(round(x)) for x in lst] for lst in predictions]
+        predictions = [CommonParser.to_final_label(x)
+                       for x in predictions]
         return predictions
 
     def output(self, output_filename="result"):
@@ -139,11 +129,16 @@ class Shell:
             Filename to output.
         """
         predictions = self.get_formatted_predictions()
+        formatted_output = [{
+                "chknum": chknum,
+                "pred": pred
+            } for chknum, pred in zip(predictions, self._parser.chknums)
+        ]
 
-        out = pd.DataFrame(predictions, dtype=np.int64)
-        out.to_csv(f"{output_filename}.csv", index=False, header=False)
+        out = pd.DataFrame(formatted_output, dtype=np.int64)
+        out.to_csv(f"{output_filename}.csv", index=False)
 
-    def predict(self, filepath_or_buffer, **kwargs):
+    def train(self, filepath_or_buffer, **kwargs):
         """
         Train model on input dataset.
 
@@ -157,7 +152,8 @@ class Shell:
         :param kwargs: dict
             Passes additional arguments to the parser.parse method.
         """
-        self._input(filepath_or_buffer, **kwargs)
+        self._parser.parse_train_data(filepath_or_buffer, to_list=True,
+                                      **kwargs)
         self._model.train(*self._parser.get_train_data())
 
         validation_samples, self._validation_labels = \
@@ -166,8 +162,23 @@ class Shell:
         self._predictions = self._model.predict(validation_samples,
                                                 self._validation_labels)
 
-    def train(self):
-        pass
+    def predict(self, filepath_or_buffer_set, filepath_or_buffer_menu,
+                **kwargs):
+        """
+        Make predictions on input dataset.
+
+        :param filepath_or_buffer_set: same as train filepath_or_buffer.
+
+        :param filepath_or_buffer_menu: same as train filepath_or_buffer.
+
+        :param kwargs: dict
+            Passes additional arguments to the parser.parse method.
+        """
+        self._parser.parse_test_data(filepath_or_buffer_set,
+                                     filepath_or_buffer_menu, to_list=True,
+                                     **kwargs)
+
+        self._predictions = self._model.predict(self._parser.get_test_data())
 
     def test(self):
         """
