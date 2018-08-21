@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import RidgeCV
 
-from models import model
+from . import model
 
 
 class LinearModel(model.IModel):
@@ -24,6 +24,6 @@ class LinearModel(model.IModel):
 
 class RidgeCVModel(LinearModel):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
-        self.model = RidgeCV()
+        self.model = RidgeCV(**kwargs)

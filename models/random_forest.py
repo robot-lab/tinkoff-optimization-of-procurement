@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.ensemble import ExtraTreesRegressor
 
-from models import model
+from . import model
 
 
 class ExtraTreesModel(model.IModel):
