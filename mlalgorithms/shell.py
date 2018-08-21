@@ -1,9 +1,12 @@
-import logger
 import pickle
-import tester
+import os.path
 
 import numpy as np
 import pandas as pd
+
+from .logger import decor_class_logging_error_and_time, setup_logging
+
+from .tester import Tester
 
 from .parsers.parser import IParser
 from .parsers.linear_model_parser import LinearModelParser
@@ -12,20 +15,27 @@ from .parsers.config_parsers import ConfigParser
 from .models.model import IModel
 
 
-@logger.decor_class_logging_error_and_time()
+my_path = os.path.abspath(os.path.dirname(__file__))
+ml_config_path = os.path.join(my_path, "ml_config.json")
+log_config_path = os.path.join(my_path, "log_config.json")
+
+setup_logging(log_config_path)
+
+
+@decor_class_logging_error_and_time()
 class Shell:
 
-    def __init__(self, config_filename="ml_config.json", model_exists=False):
+    def __init__(self, model_exists=False):
         """
         Constructor which initialize class fields.
 
-        :param config_filename: str, optional (default="ml_config.json")
+        :param model_exists: bool, optional (default=False)
             Name of the json file with configuration.
         """
         self._validation_labels = None
         self._predictions = None
-        self._config_parser = ConfigParser(config_filename)
-        self._tester = tester.Tester(
+        self._config_parser = ConfigParser(ml_config_path)
+        self._tester = Tester(
             self._config_parser["metric_name"]
         )
 
@@ -191,26 +201,3 @@ class Shell:
         """
         with open(f"models/{filename}.mdl", "wb") as output_stream:
             output_stream.write(pickle.dumps(self._model.model))
-
-
-def test():
-    sh = Shell()
-    sh.process("data/tinkoff/train.csv")
-    sh.test()
-    sh.output()
-
-
-def main():
-    logger.setup_logging()
-    test()
-
-    # Example of execution:
-    # sh = Shell()
-    # sh.predict()
-    # sh.test()
-    # sh.save_model()
-    # sh.output()
-
-
-if __name__ == "__main__":
-    main()
