@@ -121,22 +121,23 @@ class Shell:
                        for x in predictions]
         return predictions
 
-    def output(self, output_filename="result"):
+    def output(self, output_filename="result.csv"):
         """
         Output current prediction to filename.
 
-        :param output_filename: str, optional (default="result")
+        :param output_filename: str, file oe buffer
+            optional (default="result.csv")
             Filename to output.
         """
         predictions = self.get_formatted_predictions()
         formatted_output = [{
                 "chknum": chknum,
-                "pred": pred
-            } for chknum, pred in zip(predictions, self._parser.chknums)
+                "pred": " ".join(str(x) for x in pred)
+            } for chknum, pred in zip(self._parser.chknums, predictions)
         ]
 
         out = pd.DataFrame(formatted_output, dtype=np.int64)
-        out.to_csv(f"{output_filename}.csv", index=False)
+        out.to_csv(output_filename, index=False)
 
     def train(self, filepath_or_buffer):
         """
@@ -155,8 +156,7 @@ class Shell:
         validation_samples, self._validation_labels = \
             self._parser.get_validation_data()
 
-        self._predictions = self._model.predict(validation_samples,
-                                                self._validation_labels)
+        self._predictions = self._model.predict(validation_samples)
 
     def predict(self, filepath_or_buffer_set, filepath_or_buffer_menu):
         """
