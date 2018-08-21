@@ -174,6 +174,9 @@ class Shell:
     def test(self):
         """
         Test prediction quality of algorithm.
+
+        :return tuple (float, float)
+            Pair of two values from tester class.
         """
         test_result = self._tester.test(self._validation_labels,
                                         self._predictions)
@@ -181,8 +184,7 @@ class Shell:
         quality = self._tester.quality_control(self._validation_labels,
                                                self._predictions)
 
-        print(f"Metrics: {test_result}")
-        print(f"Quality satisfaction: {quality}")
+        return test_result, quality
 
     def load_model(self, filename="model"):
         """
