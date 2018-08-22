@@ -35,17 +35,11 @@
   },
   "loggers":
   {
-    "Main":
+    "mlalgorithms":
     {
       "level": "DEBUG",
       "handlers": ["console", "file"],
       "propagate": 0
     }
-  },
-  "root":
-  {
-      "level": "DEBUG",
-      "handlers": ["console", "file"],
-      "propagate": 0
   }
 }
