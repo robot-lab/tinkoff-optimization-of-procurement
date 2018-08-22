@@ -58,6 +58,28 @@ class CommonParser(parser.IParser):
         list_of_labels = list(result["good_id"])
         return list_of_instances, list_of_labels
 
+    def _load_formatted_train_data(self, filepath_or_buffer):
+        df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
+        dfgroup = df[["chknum", "month", "day", "person_id"]] \
+            .groupby(["chknum", "month", "day", "person_id"], as_index=False) \
+            .agg(list)
+        dictionary = {}
+        for index, row in dfgroup.iterrows():
+            dictionary.setdefault((row['month'], row['day']), []).append(
+                {"chknum": row["chknum"],
+                 "person_id": row["person_id"],
+                 "good_id": row["good_id"]})
+        return dictionary
+
+    @staticmethod
+    def _load_menu_from_data(df):
+        dfgroup = df[['month', 'day', 'good_id']] \
+            .groupby(['month', 'day'], as_index=False) \
+            .agg(list)
+        dfgroup['good_id'] = dfgroup['good_id'] \
+            .apply(lambda x: list(pd.Series(x).unique()))
+        return dfgroup.set_index(['month', 'day']).to_dict('index')
+
     def _load_test_data(self, filepath_or_buffer_set, filepath_or_buffer_menu):
         df = pd.read_csv(filepath_or_buffer_set)
         self._chknums = df["chknum"].tolist()
