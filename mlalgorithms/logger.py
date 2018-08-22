@@ -27,8 +27,8 @@ def decor_exception(func):
         try:
             return func(*args, **kwargs)
         except Exception:
-            get_logger().exception(f"Exception occurred in {func.__name__} with "
-                                   f"arguments %s %s!",
+            get_logger().exception(f"Exception occurred in {func.__name__} "
+                                   f"with arguments %s %s!",
                                    args,
                                    kwargs,
                                    exc_info=False)
@@ -56,6 +56,7 @@ def decor_class_logging_error_and_time():
     def decorate(cls):
         for attr in cls.__dict__:
             if callable(getattr(cls, attr)):
-                setattr(cls, attr, decor_timer(decor_exception(getattr(cls, attr))))
+                setattr(cls, attr,
+                        decor_timer(decor_exception(getattr(cls, attr))))
         return cls
     return decorate
