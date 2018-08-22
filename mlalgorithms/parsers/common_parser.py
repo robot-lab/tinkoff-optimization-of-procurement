@@ -58,6 +58,18 @@ class CommonParser(parser.IParser):
         list_of_labels = list(result["good_id"])
         return list_of_instances, list_of_labels
 
+    def _load_formatted_train_data(self, filepath_or_buffer):
+        df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
+        df.drop(columns=['good'], inplace=True)
+        indices = list(df["good_id"])
+        self._menu = set(sorted(indices))
+        df = df.groupby(['chknum', 'month', 'day', 'person_id'], as_index=False).agg(list)
+        dictionary = {}
+        for index, row in df.iterrows():
+            dictionary.setdefault((row['month'], row['day']), []).append(
+                {'chknum': row['chknum'], 'person_id': row['person_id'], 'good_id': row['good_id']})
+        return dictionary
+
     def _load_test_data(self, filepath_or_buffer_set, filepath_or_buffer_menu):
         df = pd.read_csv(filepath_or_buffer_set)
         self._chknums = df["chknum"].tolist()
