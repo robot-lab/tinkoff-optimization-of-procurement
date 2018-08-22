@@ -90,14 +90,15 @@ class ConfigParser:
         :param label: str
             Name of the tool which need to parse in config file.
 
-        :return: tuple (str, str, dict)
+        :return: dict {"class_name": str, "module_name": str, "params": dict)
             Tuple with label class name, label module name and parameters.
         """
         class_name = self[f"selected_{label}"]
         internal_dict = self.get_internal_params(f"{label}s", class_name)
 
-        return (class_name, internal_dict[f"{label}_module_name"],
-                internal_dict[f"{label}_params"])
+        return {"class_name": class_name,
+                "module_name": internal_dict[f"{label}_module_name"],
+                "params": internal_dict[f"{label}_params"]}
 
     def get_metric(self):
         """

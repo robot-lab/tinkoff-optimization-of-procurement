@@ -44,17 +44,17 @@ class Shell:
 
         if not existing_model_name:
             self._model = self._config_parser.get_instance(
-                self._model_parameters[0],
-                self._model_parameters[1],
-                **self._model_parameters[2]
+                self._model_parameters["class_name"],
+                self._model_parameters["module_name"],
+                **self._model_parameters["params"]
             )
         else:
             self.load_model(existing_model_name)
 
         self._parser = self._config_parser.get_instance(
-            self._parser_parameters[0],
-            self._parser_parameters[1],
-            **self._parser_parameters[2],
+            self._parser_parameters["class_name"],
+            self._parser_parameters["module_name"],
+            **self._parser_parameters["params"],
             debug=self.is_debug()
         )
 
