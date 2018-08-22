@@ -15,9 +15,9 @@ from .parsers.config_parsers import ConfigParser
 from .models.model import IModel
 
 
-my_path = os.path.abspath(os.path.dirname(__file__))
-ml_config_path = os.path.join(my_path, "ml_config.json")
-log_config_path = os.path.join(my_path, "log_config.json")
+file_path = os.path.abspath(os.path.dirname(__file__))
+ml_config_path = os.path.join(file_path, "ml_config.json")
+log_config_path = os.path.join(file_path, "log_config.json")
 
 setup_logging(log_config_path)
 
@@ -36,25 +36,25 @@ class Shell:
         self._predictions = None
         self._config_parser = ConfigParser(ml_config_path)
         self._tester = Tester(
-            self._config_parser["metric_name"]
+            self._config_parser.get_metric()
         )
 
-        self._model_parameters = self._config_parser["model_parameters"]
-        self._parser_parameters = self._config_parser["parser_parameters"]
+        self._model_parameters = self._config_parser.get_params_for("model")
+        self._parser_parameters = self._config_parser.get_params_for("parser")
 
         if not existing_model_name:
             self._model = self._config_parser.get_instance(
-                self._config_parser["model_name"],
-                self._config_parser["model_module_name"],
-                **self._model_parameters
+                self._model_parameters[0],
+                self._model_parameters[1],
+                **self._model_parameters[2]
             )
         else:
             self.load_model(existing_model_name)
 
         self._parser = self._config_parser.get_instance(
-            self._config_parser["parser_name"],
-            self._config_parser["parser_module_name"],
-            **self._parser_parameters,
+            self._parser_parameters[0],
+            self._parser_parameters[1],
+            **self._parser_parameters[2],
             debug=self.is_debug()
         )
 
@@ -108,7 +108,6 @@ class Shell:
         """
         return self._predictions
 
-    @property
     def is_raw_data(self, flag_name="not_parse_data"):
         """
         Return status of the raw data flag in the parser parameters.
@@ -119,7 +118,7 @@ class Shell:
         :return: bool
             Value of the flag.
         """
-        return self._parser_parameters[flag_name]
+        return self._parser_parameters[2][flag_name]
 
     def get_formatted_predictions(self, raw_data=False):
         """
@@ -170,7 +169,7 @@ class Shell:
             optional (default="result.csv")
             Filename to output.
         """
-        out = self.get_formatted_predictions(raw_data=self.is_raw_data)
+        out = self.get_formatted_predictions(raw_data=self.is_raw_data())
         out.to_csv(output_filename, index=False)
 
     def train(self, filepath_or_buffer):
@@ -186,9 +185,9 @@ class Shell:
         """
         self._parser.parse_train_data(filepath_or_buffer)
 
-        if self._config_parser["model_name"] == "CatBoostModel":
+        if self._config_parser["selected_model"] == "CatBoostModel":
             train_samples, train_labels = self._parser.get_train_data()
-            train_num = int(self._parser_parameters["proportion"] *
+            train_num = int(self._parser_parameters[2]["proportion"] *
                             len(train_samples))
             self._model.train(
                 train_samples[:train_num], train_labels[:train_num],

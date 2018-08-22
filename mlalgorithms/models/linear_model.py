@@ -12,7 +12,7 @@ class LinearModel(model.IModel):
         self.model = LinearRegression(**kwargs)
 
     def train(self, train_samples, train_labels, **kwargs):
-        self.model.fit(train_samples, train_labels)
+        self.model.fit(train_samples, train_labels, **kwargs)
 
     def predict(self, samples, **kwargs):
         predicts = []
