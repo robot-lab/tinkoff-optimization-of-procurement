@@ -123,14 +123,13 @@ class Shell:
             values in the lists and transform all np.arrays to list.
 
         :return: list
-            Right predictions without inconsistencies with the menu
+            Right predictions without inconsistencies with the menu.
         """
-        right_predictions = []
         for chknum, pred_goods in zip(chknums, predictions):
-            for pred_good in pred_goods:
-                if pred_good in self._parser.get_menu_on_day_by_chknum(chknum):
-                    right_predictions.append(pred_good)
-        return right_predictions
+            for it, pred_good in enumerate(pred_goods):
+                if pred_good not in self._parser.get_menu_on_day_by_chknum(
+                        chknum):
+                    pred_goods.pop(it)
 
     def get_formatted_predictions(self):
         """
@@ -145,15 +144,12 @@ class Shell:
         predictions = [CommonParser.to_final_label(x)
                        for x in predictions]
 
-        right_predictions = self.format_predictions_by_menu(
-            self._parser.chknums, predictions
-        )
+        self.format_predictions_by_menu(self._parser.chknums, predictions)
 
         formatted_output = [{
                 "chknum": chknum,
                 "pred": " ".join(str(x) for x in pred)
-            } for chknum, pred in zip(self._parser.chknums,
-                                      right_predictions)
+            } for chknum, pred in zip(self._parser.chknums, predictions)
         ]
         return pd.DataFrame(formatted_output, dtype=np.int64)
 

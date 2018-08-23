@@ -30,6 +30,13 @@ class CommonParser(parser.IParser):
     def help_data(self):
         return self._help_data
 
+    def max_goods(self):
+        result = 0
+        for _, goods_and_chknums in self.help_data.items():
+            temp_max = max(goods_and_chknums["good_id"])
+            result = max(temp_max, result)
+        return result
+
     def _load_formatted_train_data(self, filepath_or_buffer):
         df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
         dfgroup = df[["chknum", "person_id", "month", "day"]] \
@@ -53,7 +60,7 @@ class CommonParser(parser.IParser):
             ["month", "day"], as_index=False).agg(list)
 
         def func(x):
-            list(pd.Series(x).unique())
+            return list(pd.Series(x).unique())
 
         dfgroup["good_id"] = dfgroup["good_id"].apply(func)
         dfgroup["chknum"] = dfgroup["chknum"].apply(func)
@@ -112,7 +119,7 @@ class CommonParser(parser.IParser):
                 self._get_absolute_date(instance))
 
     def to_interim_label(self, label):
-        result = [0] * (max(self._help_data) + 1)
+        result = [0] * (self.max_goods() + 1)
         for elem in label:
             result[elem] += 1
         return result
