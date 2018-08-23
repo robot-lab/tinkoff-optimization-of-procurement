@@ -141,6 +141,19 @@ class MeanF1Score(Metric):
 
     @staticmethod
     def zero_check(conj, arr_len):
+        """
+        Check if goods list is empty.
+
+        :param conj: int
+            Cardinality of conjunction of two sets of goods.
+
+        :param arr_len: int
+            Cardinality of goods list.
+
+        :return: int, float
+            Return 0 if goods list is empty, otherwise division conj and
+            arr_len.
+        """
         if arr_len == 0:
             return 0
         else:
@@ -148,6 +161,18 @@ class MeanF1Score(Metric):
 
     @staticmethod
     def conjunction(lst1, lst2):
+        """
+        Calculate conjunction of two arrays.
+
+        :param lst1: list
+            First array.
+
+        :param lst2: list
+            Second arry.
+
+        :return: int
+            Cardinality of conjunction.
+        """
         it1 = iter(lst1)
         it2 = iter(lst2)
         try:

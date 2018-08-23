@@ -58,8 +58,20 @@ class Shell:
             debug=self.is_debug()
         )
 
+        # pickle dumps is not equal to created model and parser classes.
         if not existing_model_name:
-            assert self._check_interfaces()
+            assert(self._check_interfaces(),
+                   "Model or parser is not subclass of IModel or IParser.")
+
+    @property
+    def predictions(self):
+        """
+        Get current results of prediction.
+
+        :return: list
+            Current predictions.
+        """
+        return self._predictions
 
     def _check_interface(self, instance, parent_class):
         """
@@ -99,67 +111,50 @@ class Shell:
         """
         return self._config_parser[flag_name]
 
-    @property
-    def predictions(self):
+    def format_predictions_by_menu(self, chknums, predictions):
         """
-        Get current results of prediction.
+        Remove goods which are not in menu on day.
+
+        :param chknums: list
+            List of checks.
+
+        :param predictions: list
+            List of predictions returned by predict method. Need to round float
+            values in the lists and transform all np.arrays to list.
 
         :return: list
-            Current predictions.
+            Right predictions without inconsistencies with the menu
         """
-        return self._predictions
+        right_predictions = []
+        for chknum, pred_goods in zip(chknums, predictions):
+            for pred_good in pred_goods:
+                if pred_good in self._parser.get_menu_on_day_by_chknum(chknum):
+                    right_predictions.append(pred_good)
+        return right_predictions
 
-    def is_raw_data(self, flag_name="not_parse_data"):
-        """
-        Return status of the raw data flag in the parser parameters.
-
-        :param flag_name: str, optional (not_parse_data="")
-            Name of the flag in config.
-
-        :return: bool
-            Value of the flag.
-        """
-        return self._parser_parameters["params"][flag_name]
-
-    def get_formatted_predictions(self, raw_data=False):
+    def get_formatted_predictions(self):
         """
         Format raw results of prediction.
-
-        :param raw_data: bool, optional (default=False)
-            Define if shell has not parsed data.
 
         :return: pd.DataFrame
             Formatted predictions.
         """
         predictions = [x.tolist() for x in self._predictions]
 
-        if not raw_data:
-            predictions = [[int(round(x)) for x in lst] for lst in predictions]
-            predictions = [CommonParser.to_final_label(x)
-                           for x in predictions]
-            formatted_output = [{
-                    "chknum": chknum,
-                    "pred": " ".join(str(x) for x in pred)
-                } for chknum, pred in zip(self._parser.chknums, predictions)
-            ]
-        else:
-            assert len(self._parser.chknums) == len(self._predictions)
-            predictions = [int(round(CommonParser.to_final_label_math(x)))
-                           for x in predictions]
-            formatted_output = [{
-                    "chknum": chknum,
-                    "pred": pred
-                } for chknum, pred in zip(self._parser.chknums, predictions)
-            ]
-            predictions = pd.DataFrame(formatted_output, dtype=np.int64)
-            predictions = predictions.groupby("chknum",
-                                              as_index=False).agg(list)
-            predictions = predictions.values.tolist()
-            formatted_output = [{
-                    "chknum": chknum,
-                    "pred": " ".join(str(x) for x in pred)
-                } for chknum, pred in predictions
-            ]
+        predictions = [[int(round(x)) for x in lst] for lst in predictions]
+        predictions = [CommonParser.to_final_label(x)
+                       for x in predictions]
+
+        right_predictions = self.format_predictions_by_menu(
+            self._parser.chknums, predictions
+        )
+
+        formatted_output = [{
+                "chknum": chknum,
+                "pred": " ".join(str(x) for x in pred)
+            } for chknum, pred in zip(self._parser.chknums,
+                                      right_predictions)
+        ]
         return pd.DataFrame(formatted_output, dtype=np.int64)
 
     def output(self, output_filename="result.csv"):
@@ -170,7 +165,7 @@ class Shell:
             optional (default="result.csv")
             Filename to output.
         """
-        out = self.get_formatted_predictions(raw_data=self.is_raw_data())
+        out = self.get_formatted_predictions()
         out.to_csv(output_filename, index=False)
 
     def train(self, filepath_or_buffer):
