@@ -1,5 +1,5 @@
 {
-  "selected_model": "EatSameAsBefore",
+  "selected_model": "EatMostPopular",
   "models": [
     {
       "model_module_name": "mlalgorithms.models.linear_model",
@@ -145,6 +145,14 @@
     {
       "model_module_name": "mlalgorithms.models.frequency_analysis",
       "model_name": "EatSameAsBefore",
+
+      "model_params": {
+      }
+    },
+
+    {
+      "model_module_name": "mlalgorithms.models.frequency_analysis",
+      "model_name": "EatMostPopularFromOwnOrders",
 
       "model_params": {
       }

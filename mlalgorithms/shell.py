@@ -206,11 +206,13 @@ class Shell:
                 eval_set=(train_samples[train_num:], train_labels[train_num:])
             )
         elif (self._config_parser["selected_model"] == "EatMostPopular" or
+              self._config_parser["selected_model"] == "EatSameAsBefore" or
               self._config_parser["selected_model"] == "EatSameAsBefore"):
             self._model.train(
                 *self._parser.get_train_data(),
-                most_popular_goods=
-                self._parser.to_interim_label(self._parser.most_popular_goods)
+                most_popular_goods=self._parser.to_interim_label(
+                    self._parser.most_popular_goods
+                )
             )
         else:
             self._model.train(*self._parser.get_train_data())
