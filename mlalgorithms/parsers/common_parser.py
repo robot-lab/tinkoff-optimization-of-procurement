@@ -9,18 +9,19 @@ from . import parser
 class CommonParser(parser.IParser):
 
     def __init__(self, proportion=0.7, raw_date=True, n_rows=None,
-                 debug=False):
+                 num_popular_ids=5, debug=False):
         self._train_samples_num = 0
         self._list_of_instances = []
         self._list_of_labels = []
         self._list_of_samples = []
         self._help_data = dict()
         self._chknums = list()
-        self._most_popular_goods = list()
+        self._most_popular_good_ids = list()
 
         self._proportion = proportion
         self._raw_date = raw_date
         self._n_rows = n_rows
+        self.num_popular_ids = num_popular_ids
         self._debug = debug
 
     @property
@@ -32,8 +33,8 @@ class CommonParser(parser.IParser):
         return self._help_data
 
     @property
-    def most_popular_goods(self):
-        return self._most_popular_goods
+    def most_popular_good_ids(self):
+        return self._most_popular_good_ids
 
     def max_good_id(self):
         result = 0
@@ -87,8 +88,8 @@ class CommonParser(parser.IParser):
     def _load_train_data(self, filepath_or_buffer):
         df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
 
-        self._most_popular_goods = df["good_id"].value_counts().head().\
-            index.tolist()
+        self._most_popular_good_ids = df["good_id"].value_counts().head(
+            self.num_popular_ids).index.tolist()
         self._help_data = self._sorted_by_date_train_data(df)
 
         result = df.groupby(["chknum", "person_id", "month", "day"],

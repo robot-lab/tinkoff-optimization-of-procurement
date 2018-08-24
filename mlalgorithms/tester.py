@@ -256,9 +256,14 @@ class TestModel(model.IModel):
 
     def train(self, train_samples, train_labels, **kwargs):
         assert len(train_samples) == len(train_labels), \
-            "Samples and labels have different sizes."
+            f"Samples and labels have different sizes: " \
+            f"{len(train_samples)} != {len(train_labels)}"
 
     def predict(self, samples, **kwargs):
+        assert len(samples) == len(kwargs["labels"]), \
+            f"Samples and labels have different sizes: " \
+            f"{len(samples)} != {len(kwargs['labels'])}"
+
         predictions = []
         for _, label in zip(samples, kwargs["labels"]):
             prediction = np.array(label)
