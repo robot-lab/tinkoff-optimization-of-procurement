@@ -106,3 +106,4 @@ venv.bak/
 # User defined block
 .vscode/
 data/
+samples/
