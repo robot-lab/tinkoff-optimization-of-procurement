@@ -205,13 +205,25 @@ class Shell:
                 train_samples[:train_num], train_labels[:train_num],
                 eval_set=(train_samples[train_num:], train_labels[train_num:])
             )
+        elif self._config_parser["selected_model"] == "EatMostPopular":
+            self._model.train(
+                *self._parser.get_train_data(),
+                most_popular_goods=
+                self._parser.to_interim_label(self._parser.most_popular_goods)
+            )
         else:
             self._model.train(*self._parser.get_train_data())
 
         validation_samples, self._validation_labels = \
             self._parser.get_validation_data()
 
-        self._predictions = self._model.predict(validation_samples)
+        if self._config_parser["selected_model"] == "TestModel":
+            self._predictions = self._model.predict(
+                validation_samples,
+                labels=self._validation_labels
+            )
+        else:
+            self._predictions = self._model.predict(validation_samples)
 
     def predict(self, filepath_or_buffer_set, filepath_or_buffer_menu):
         """

@@ -93,7 +93,7 @@ class CommonParser(parser.IParser):
 
         result = df.groupby(["chknum", "person_id", "month", "day"],
                             as_index=False).agg(list)
-        self._chknums = result["chknum"].tolist()
+        self._chknums = df["chknum"].unique().tolist()
         list_of_instances = list(
             result.drop("good_id", axis=1).T.to_dict().values()
         )

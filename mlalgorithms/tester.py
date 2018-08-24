@@ -211,7 +211,8 @@ class MeanF1Score(Metric):
             A numerical estimate of the accuracy of the algorithm.
         """
         assert len(validation_label) == len(prediction), \
-            "Labels and predictions have differnt sizes."
+            f"Labels and predictions have different sizes: " \
+            f"{len(validation_label)} != {len(prediction)}"
 
         int_prediction = [int(round(x)) for x in prediction]
 
