@@ -1,7 +1,9 @@
 import abc
 
+import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
 
+from .models import model
 from .parsers.common_parser import CommonParser
 
 
@@ -248,3 +250,17 @@ class MeanF1Score(Metric):
                                   predictions[i]) for i in range(num_checks)]
         self._cache = sum(result) / num_checks
         return self._cache
+
+
+class TestModel(model.IModel):
+
+    def train(self, train_samples, train_labels, **kwargs):
+        assert len(train_samples) == len(train_labels), \
+            "Samples and labels have different sizes."
+
+    def predict(self, samples, **kwargs):
+        predictions = []
+        for _, label in zip(samples, kwargs["labels"]):
+            prediction = np.array(label)
+            predictions.append(prediction)
+        return predictions

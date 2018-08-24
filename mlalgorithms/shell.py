@@ -205,7 +205,8 @@ class Shell:
                 train_samples[:train_num], train_labels[:train_num],
                 eval_set=(train_samples[train_num:], train_labels[train_num:])
             )
-        elif self._config_parser["selected_model"] == "EatMostPopular":
+        elif (self._config_parser["selected_model"] == "EatMostPopular" or
+              self._config_parser["selected_model"] == "EatSameAsBefore"):
             self._model.train(
                 *self._parser.get_train_data(),
                 most_popular_goods=
@@ -253,22 +254,22 @@ class Shell:
 
         return test_result, quality
 
-    def load_model(self, filename="model"):
+    def load_model(self, filename="model.mdl"):
         """
         Load trained model with all parameters from file.
 
-        :param filename: str, optional (default="model")
+        :param filename: str, optional (default="model.mdl")
             Filename of model.
         """
-        with open(f"models/{filename}.mdl", "rb") as input_stream:
+        with open(filename, "rb") as input_stream:
             self._model = pickle.loads(input_stream.read())
 
-    def save_model(self, filename="model"):
+    def save_model(self, filename="model.mdl"):
         """
         Save trained model with all parameters to file.
 
-        :param filename: str, optional (default="model")
+        :param filename: str, optional (default="model.mdl")
             Filename of model.
         """
-        with open(f"models/{filename}.mdl", "wb") as output_stream:
+        with open(filename, "wb") as output_stream:
             output_stream.write(pickle.dumps(self._model.model))
