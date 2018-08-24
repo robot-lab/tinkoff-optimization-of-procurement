@@ -148,7 +148,7 @@ class Shell:
         """
         for prediction in predictions:
             if not prediction:
-                prediction.extend(self._parser.most_popular_goods)
+                prediction.extend(self._parser.most_popular_good_ids)
 
     def get_formatted_predictions(self):
         """
@@ -206,13 +206,22 @@ class Shell:
                 eval_set=(train_samples[train_num:], train_labels[train_num:])
             )
         elif (self._config_parser["selected_model"] == "EatMostPopular" or
-              self._config_parser["selected_model"] == "EatSameAsBefore" or
               self._config_parser["selected_model"] == "EatSameAsBefore"):
             self._model.train(
                 *self._parser.get_train_data(),
                 most_popular_goods=self._parser.to_interim_label(
-                    self._parser.most_popular_goods
+                    self._parser.most_popular_good_ids
                 )
+            )
+        elif (self._config_parser["selected_model"] ==
+              "EatMostPopularFromOwnOrders"):
+            self._model.train(
+                *self._parser.get_train_data(),
+                most_popular_goods=self._parser.to_interim_label(
+                    self._parser.most_popular_good_ids
+                ),
+                most_popular_good_ids=self._parser.most_popular_good_ids,
+                max_good_id=self._parser.max_good_id()
             )
         else:
             self._model.train(*self._parser.get_train_data())
@@ -274,4 +283,4 @@ class Shell:
             Filename of model.
         """
         with open(filename, "wb") as output_stream:
-            output_stream.write(pickle.dumps(self._model.model))
+            output_stream.write(pickle.dumps(self._model))
