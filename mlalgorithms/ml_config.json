@@ -195,7 +195,7 @@
 
   "selected_metric": "f1",
   "metrics": {
-    "mse": "MeanSquadError",
+    "mse": "MeanSquaredError",
     "f1": "MeanF1Score"
   },
 

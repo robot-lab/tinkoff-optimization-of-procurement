@@ -133,9 +133,9 @@ class Shell:
             Right predictions without inconsistencies with the menu.
         """
         for chknum, pred_goods in zip(chknums, predictions):
+            daily_menu = self._parser.get_menu_on_day_by_chknum(chknum)
             for it, pred_good in enumerate(pred_goods):
-                if pred_good not in self._parser.get_menu_on_day_by_chknum(
-                        chknum):
+                if pred_good not in daily_menu:
                     pred_goods.pop(it)
 
     def process_empty_predictions(self, predictions):

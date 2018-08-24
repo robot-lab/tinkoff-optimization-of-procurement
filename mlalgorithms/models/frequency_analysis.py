@@ -66,27 +66,28 @@ class EatMostPopularFromOwnOrders(model.IModel):
 
             if non_zero_count < self.num_popular_ids:
                 non_zero_ind = person_orders.argsort()[::-1][:non_zero_count]
-                sub_ind = []
+                sub_index = []
 
-                for ind in self.most_popular_good_ids:
-                    if ind not in non_zero_ind:
-                        sub_ind.append(ind)
+                for index in self.most_popular_good_ids:
+                    if index not in non_zero_ind:
+                        sub_index.append(index)
                         non_zero_count += 1
                         if non_zero_count == self.max_good_id:
                             break
 
                 if non_zero_count < self.num_popular_ids:
-                    sub_ind.extend(
+                    sub_index.extend(
                         np.random.randint(self.max_good_id + 1,
                                           size=(self.num_popular_ids -
                                                 non_zero_count)).tolist()
                     )
-                person_orders[sub_ind] = 1
+                person_orders[sub_index] = 1
             else:
                 indices = person_orders.argsort()[::-1][:self.num_popular_ids]
                 not_in_indices = [x for x in range(len(person_orders))
                                   if x not in indices]
                 person_orders[not_in_indices] = 0
+                person_orders[indices] = 1
 
     def train(self, train_samples, train_labels, **kwargs):
         assert len(train_samples) == len(train_labels), \
