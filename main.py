@@ -15,6 +15,7 @@ def main():
 
     # Example of execution:
     # sh = Shell()
+    # sh.train()
     # sh.predict()
     # sh.test()
     # sh.save_model()
