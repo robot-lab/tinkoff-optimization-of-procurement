@@ -124,6 +124,14 @@
         "data_partition": null,
         "metadata": null
       }
+    },
+
+    {
+      "model_module_name": "mlalgorithms.models.frequency_analysis",
+      "model_name": "EatSameAsBefore",
+
+      "model_params": {
+      }
     }
   ],
 

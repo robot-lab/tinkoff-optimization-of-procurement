@@ -7,11 +7,15 @@ class EatSameAsBefore(model.IModel):
         self.data = dict()
 
     def train(self, train_samples, train_labels, **kwargs):
-        assert(len(train_samples) == len(train_labels),
-               "Samples and labels have different sizes.")
+        assert len(train_samples) == len(train_labels), \
+            "Samples and labels have different sizes."
         persons_ids = [person_data[0] for person_data in train_samples]
-        self.data = dict(zip(persons_ids, train_labels))
-        # TODO(Vasily): process multiple persons checks with goods.
+
+        for persons_id, label in zip(persons_ids, train_labels):
+            if self.data.get(persons_id) is None:
+                self.data[persons_id] = label
+            else:
+                self.data[persons_id].extend(label)
 
     def predict(self, samples, **kwargs):
         predictions = []

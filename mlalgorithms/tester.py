@@ -210,7 +210,8 @@ class MeanF1Score(Metric):
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        assert len(validation_label) == len(prediction)
+        assert len(validation_label) == len(prediction), \
+            "Labels and predictions have differnt sizes."
 
         int_prediction = [int(round(x)) for x in prediction]
 
@@ -238,7 +239,8 @@ class MeanF1Score(Metric):
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        assert self.conjunction([1, 1, 2, 3, 5], [1, 2, 4, 5]) == 3
+        assert self.conjunction([1, 1, 2, 3, 5], [1, 2, 4, 5]) == 3, \
+            "There are error in conjunction method!"
 
         num_checks = len(validation_labels)
         result = [self.test_check(validation_labels[i],
