@@ -130,8 +130,9 @@ class IParser(abc.ABC):
         """
         return math.log(label + 1)
 
+    @staticmethod
     @abc.abstractmethod
-    def to_final_label(self, interim_label):
+    def to_final_label(interim_label):
         """
         Restore the original value of interim label.
 

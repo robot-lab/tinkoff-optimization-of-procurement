@@ -136,7 +136,8 @@ class CommonParser(parser.IParser):
             result[elem] += 1
         return result
 
-    def to_final_label(self, interim_label):
+    @staticmethod
+    def to_final_label(interim_label):
         result = []
         for i, elem in enumerate(interim_label):
             if elem == 0:
