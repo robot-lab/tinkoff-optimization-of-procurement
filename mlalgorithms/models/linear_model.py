@@ -1,7 +1,7 @@
 import numpy as np
 
 from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import Ridge
 
 from . import model
 
@@ -15,15 +15,15 @@ class LinearModel(model.IModel):
         self.model.fit(train_samples, train_labels, **kwargs)
 
     def predict(self, samples, **kwargs):
-        predicts = []
+        predictions = []
         for sample in samples:
             prediction = self.model.predict(np.array(sample).reshape(1, -1))[0]
-            predicts.append(prediction)
-        return predicts
+            predictions.append(prediction)
+        return predictions
 
 
-class RidgeCVModel(LinearModel):
+class RidgeModel(LinearModel):
 
     def __init__(self, **kwargs):
         super().__init__()
-        self.model = RidgeCV(**kwargs)
+        self.model = Ridge(**kwargs)

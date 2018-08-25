@@ -25,16 +25,20 @@ setup_logging(log_config_path)
 @decor_class_logging_error_and_time()
 class Shell:
 
-    def __init__(self, existing_model_name=""):
+    def __init__(self, existing_model_name="", existing_parsed_json_dict=None):
         """
         Constructor which initialize class fields.
 
         :param existing_model_name: str, optional (default="")
             Name of the existing model file.
+
+        :param existing_parsed_json_dict: dict, optional (default=None)
+            If config file was parsed, you can pass it to this class.
         """
         self._validation_labels = None
         self._predictions = None
-        self._config_parser = ConfigParser(ml_config_path)
+        self._config_parser = ConfigParser(existing_parsed_json_dict,
+                                           ml_config_path)
         self._tester = Tester(
             self._config_parser.get_metric()
         )
@@ -58,10 +62,11 @@ class Shell:
             debug=self.is_debug()
         )
 
-        # pickle dumps is not equal to created model and parser classes.
+        # ATTENTION: pickle dumps is not equal to created model and parser
+        # classes.
         if not existing_model_name:
-            assert(self._check_interfaces(),
-                   "Model or parser is not subclass of IModel or IParser.")
+            assert self._check_interfaces(), \
+                "Model or parser is not subclass of IModel or IParser."
 
     @property
     def predictions(self):
@@ -73,6 +78,8 @@ class Shell:
         """
         return self._predictions
 
+    # ATTENTION: this method cannot be static because logger doesn't process
+    # static methods.
     def _check_interface(self, instance, parent_class):
         """
         Checks the classes on the according interfaces.
@@ -123,14 +130,25 @@ class Shell:
             values in the lists and transform all np.arrays to list.
 
         :return: list
-            Right predictions without inconsistencies with the menu
+            Right predictions without inconsistencies with the menu.
         """
-        right_predictions = []
         for chknum, pred_goods in zip(chknums, predictions):
-            for pred_good in pred_goods:
-                if pred_good in self._parser.get_menu_on_day_by_chknum(chknum):
-                    right_predictions.append(pred_good)
-        return right_predictions
+            daily_menu = self._parser.get_menu_on_day_by_chknum(chknum)
+            for it, pred_good in enumerate(pred_goods):
+                if pred_good not in daily_menu:
+                    pred_goods.pop(it)
+
+    def process_empty_predictions(self, predictions):
+        """
+        If we have empty prediction, extend them by most popular goods.
+
+        :param predictions: list
+            List of predictions returned by predict method. Need to round float
+            values in the lists and transform all np.arrays to list.
+        """
+        for prediction in predictions:
+            if not prediction:
+                prediction.extend(self._parser.most_popular_good_ids)
 
     def get_formatted_predictions(self):
         """
@@ -145,15 +163,13 @@ class Shell:
         predictions = [CommonParser.to_final_label(x)
                        for x in predictions]
 
-        right_predictions = self.format_predictions_by_menu(
-            self._parser.chknums, predictions
-        )
+        self.format_predictions_by_menu(self._parser.chknums, predictions)
+        self.process_empty_predictions(predictions)
 
         formatted_output = [{
                 "chknum": chknum,
                 "pred": " ".join(str(x) for x in pred)
-            } for chknum, pred in zip(self._parser.chknums,
-                                      right_predictions)
+            } for chknum, pred in zip(self._parser.chknums, predictions)
         ]
         return pd.DataFrame(formatted_output, dtype=np.int64)
 
@@ -189,13 +205,37 @@ class Shell:
                 train_samples[:train_num], train_labels[:train_num],
                 eval_set=(train_samples[train_num:], train_labels[train_num:])
             )
+        elif (self._config_parser["selected_model"] == "EatMostPopular" or
+              self._config_parser["selected_model"] == "EatSameAsBefore"):
+            self._model.train(
+                *self._parser.get_train_data(),
+                most_popular_goods=self._parser.to_interim_label(
+                    self._parser.most_popular_good_ids
+                )
+            )
+        elif (self._config_parser["selected_model"] ==
+              "EatMostPopularFromOwnOrders"):
+            self._model.train(
+                *self._parser.get_train_data(),
+                most_popular_goods=self._parser.to_interim_label(
+                    self._parser.most_popular_good_ids
+                ),
+                most_popular_good_ids=self._parser.most_popular_good_ids,
+                max_good_id=self._parser.max_good_id()
+            )
         else:
             self._model.train(*self._parser.get_train_data())
 
         validation_samples, self._validation_labels = \
             self._parser.get_validation_data()
 
-        self._predictions = self._model.predict(validation_samples)
+        if self._config_parser["selected_model"] == "TestModel":
+            self._predictions = self._model.predict(
+                validation_samples,
+                labels=self._validation_labels
+            )
+        else:
+            self._predictions = self._model.predict(validation_samples)
 
     def predict(self, filepath_or_buffer_set, filepath_or_buffer_menu):
         """
@@ -225,22 +265,22 @@ class Shell:
 
         return test_result, quality
 
-    def load_model(self, filename="model"):
+    def load_model(self, filename="model.mdl"):
         """
         Load trained model with all parameters from file.
 
-        :param filename: str, optional (default="model")
+        :param filename: str, optional (default="model.mdl")
             Filename of model.
         """
-        with open(f"models/{filename}.mdl", "rb") as input_stream:
+        with open(filename, "rb") as input_stream:
             self._model = pickle.loads(input_stream.read())
 
-    def save_model(self, filename="model"):
+    def save_model(self, filename="model.mdl"):
         """
         Save trained model with all parameters to file.
 
-        :param filename: str, optional (default="model")
+        :param filename: str, optional (default="model.mdl")
             Filename of model.
         """
-        with open(f"models/{filename}.mdl", "wb") as output_stream:
-            output_stream.write(pickle.dumps(self._model.model))
+        with open(filename, "wb") as output_stream:
+            output_stream.write(pickle.dumps(self._model))

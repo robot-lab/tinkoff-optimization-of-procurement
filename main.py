@@ -7,6 +7,7 @@ def test():
     test_result, quality = sh.test()
     print(f"Metrics: {test_result}")
     print(f"Quality satisfaction: {quality}")
+    sh.predict("data/tinkoff/test.csv", "data/tinkoff/menu.csv")
     sh.output()
 
 
@@ -14,11 +15,12 @@ def main():
     test()
 
     # Example of execution:
-    # sh = Shell()
-    # sh.predict()
-    # sh.test()
-    # sh.save_model()
-    # sh.output()
+    # sh = shell.Shell()
+    # sh.train(train_set_filename)
+    # test_result, quality = sh.test()
+    # sh.save_model(output_model_name)
+    # sh.predict(test_set_filename, menu_filename)
+    # sh.output(output_filename)
 
 
 if __name__ == "__main__":
