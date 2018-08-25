@@ -163,8 +163,8 @@ class Shell:
         predictions = [CommonParser.to_final_label(x)
                        for x in predictions]
 
-        self.format_predictions_by_menu(self._parser.chknums, predictions)
         self.process_empty_predictions(predictions)
+        self.format_predictions_by_menu(self._parser.chknums, predictions)
 
         formatted_output = [{
                 "chknum": chknum,
