@@ -1,5 +1,3 @@
-import math
-
 import pandas as pd
 
 from . import parser
@@ -21,7 +19,7 @@ class CommonParser(parser.IParser):
         self._proportion = proportion
         self._raw_date = raw_date
         self._n_rows = n_rows
-        self.num_popular_ids = num_popular_ids
+        self._num_popular_ids = num_popular_ids
         self._debug = debug
 
     @property
@@ -35,13 +33,6 @@ class CommonParser(parser.IParser):
     @property
     def most_popular_good_ids(self):
         return self._most_popular_good_ids
-
-    def max_good_id(self):
-        result = 0
-        for _, goods_and_chknums in self.help_data.items():
-            temp_max = max(goods_and_chknums["good_id"])
-            result = max(temp_max, result)
-        return result
 
     @staticmethod
     def _sorted_by_date_train_data(df):
@@ -89,7 +80,7 @@ class CommonParser(parser.IParser):
         df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
 
         self._most_popular_good_ids = df["good_id"].value_counts().head(
-            self.num_popular_ids).index.tolist()
+            self._num_popular_ids).index.tolist()
         self._help_data = self._sorted_by_date_train_data(df)
 
         result = df.groupby(["chknum", "person_id", "month", "day"],
@@ -126,34 +117,32 @@ class CommonParser(parser.IParser):
         return (self._get_person_id(instance) +
                 self._get_absolute_date(instance))
 
-    def to_interim_label(self, label):
-        result = [0] * (self.max_good_id() + 1)
-        for elem in label:
-            result[elem] += 1
+    def max_good_id(self):
+        result = 0
+        for _, goods_and_chknums in self.help_data.items():
+            temp_max = max(goods_and_chknums["good_id"])
+            result = max(temp_max, result)
         return result
-
-    @staticmethod
-    def to_final_label(interim_label):
-        result = []
-        for i, elem in enumerate(interim_label):
-            if elem == 0:
-                continue
-            result += [i] * elem
-        return result
-
-    @staticmethod
-    def to_interim_label_math(label):
-        return math.log(label + 1)
-
-    @staticmethod
-    def to_final_label_math(interim_label):
-        return math.exp(interim_label) - 1
 
     def get_menu_on_day_by_chknum(self, chknum):
         for date, value in self.help_data.items():
             if chknum in value["chknum"]:
                 return value["good_id"]
         raise KeyError(f"No checks with given chknum={chknum}")
+
+    def to_interim_label(self, label):
+        result = [0] * (self.max_good_id() + 1)
+        for elem in label:
+            result[elem] += 1
+        return result
+
+    def to_final_label(self, interim_label):
+        result = []
+        for i, elem in enumerate(interim_label):
+            if elem == 0:
+                continue
+            result += [i] * elem
+        return result
 
     def parse_train_data(self, filepath_or_buffer):
         self._list_of_instances, self._list_of_labels = self._load_train_data(
