@@ -7,8 +7,8 @@ def test():
     test_result, quality = sh.test()
     print(f"Metrics: {test_result}")
     print(f"Quality satisfaction: {quality}")
-    sh.predict("data/tinkoff/test.csv", "data/tinkoff/menu.csv")
-    sh.output()
+    # sh.predict("data/tinkoff/test.csv", "data/tinkoff/menu.csv")
+    # sh.output()
 
 
 def main():

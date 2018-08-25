@@ -1,15 +1,15 @@
 import numpy as np
 
-from sklearn.ensemble import ExtraTreesRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import ExtraTreeRegressor
 
 from . import model
 
 
-class ExtraTreesModel(model.IModel):
+class DecisionTreeModel(model.IModel):
 
     def __init__(self, **kwargs):
-        self.model = ExtraTreesRegressor(**kwargs)
+        self.model = DecisionTreeRegressor(**kwargs)
 
     def train(self, train_samples, train_labels, **kwargs):
         self.model.fit(train_samples, train_labels, **kwargs)
@@ -22,10 +22,10 @@ class ExtraTreesModel(model.IModel):
         return predictions
 
 
-class RandomForestModel(model.IModel):
+class ExtraTreeModel(model.IModel):
 
     def __init__(self, **kwargs):
-        self.model = RandomForestRegressor(**kwargs)
+        self.model = ExtraTreeRegressor(**kwargs)
 
     def train(self, train_samples, train_labels, **kwargs):
         self.model.fit(train_samples, train_labels, **kwargs)

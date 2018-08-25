@@ -197,18 +197,11 @@ class Shell:
         """
         self._parser.parse_train_data(filepath_or_buffer)
 
-        if self._config_parser["selected_model"] == "CatBoostModel":
-            train_samples, train_labels = self._parser.get_train_data()
-            train_num = int(self._parser_parameters["params"]["proportion"] *
-                            len(train_samples))
+        train_samples, train_labels = self._parser.get_train_data()
+        if (self._config_parser["selected_model"] == "EatMostPopular" or
+                self._config_parser["selected_model"] == "EatSameAsBefore"):
             self._model.train(
-                train_samples[:train_num], train_labels[:train_num],
-                eval_set=(train_samples[train_num:], train_labels[train_num:])
-            )
-        elif (self._config_parser["selected_model"] == "EatMostPopular" or
-              self._config_parser["selected_model"] == "EatSameAsBefore"):
-            self._model.train(
-                *self._parser.get_train_data(),
+                train_samples, train_labels,
                 most_popular_goods=self._parser.to_interim_label(
                     self._parser.most_popular_good_ids
                 )
@@ -216,7 +209,7 @@ class Shell:
         elif (self._config_parser["selected_model"] ==
               "EatMostPopularFromOwnOrders"):
             self._model.train(
-                *self._parser.get_train_data(),
+                train_samples, train_labels,
                 most_popular_goods=self._parser.to_interim_label(
                     self._parser.most_popular_good_ids
                 ),
@@ -224,7 +217,7 @@ class Shell:
                 max_good_id=self._parser.max_good_id()
             )
         else:
-            self._model.train(*self._parser.get_train_data())
+            self._model.train(train_samples, train_labels)
 
         validation_samples, self._validation_labels = \
             self._parser.get_validation_data()
