@@ -15,12 +15,32 @@ class CommonParser(parser.IParser):
         self._help_data = dict()
         self._chknums = list()
         self._most_popular_good_ids = list()
+        self._answers_for_train = list()
 
         self._proportion = proportion
+        if not (0.0 < self._proportion <= 1.0):
+            raise ValueError(f"proportion parameter must be in (0.0, 1.0]: "
+                             f"you passed {self._proportion}.")
+
         self._raw_date = raw_date
+        if type(self._raw_date) is not bool:
+            raise ValueError(f"raw_date parameter must be bool: "
+                             f"you passed {type(self._raw_date)}.")
+
         self._n_rows = n_rows
+        if not (self._n_rows is None or type(self._n_rows) is int):
+            raise ValueError(f"n_rows parameter must be None or int: "
+                             f"you passed {type(self._n_rows)}.")
+
         self._num_popular_ids = num_popular_ids
+        if type(self._num_popular_ids) is not int:
+            raise ValueError(f"num_popular_ids parameter must be int: "
+                             f"you passed {type(self._num_popular_ids)}.")
+
         self._debug = debug
+        if type(self._debug) is not bool:
+            raise ValueError(f"debug parameter must be bool: "
+                             f"you passed {type(self._debug)}.")
 
     @property
     def chknums(self):
@@ -33,6 +53,10 @@ class CommonParser(parser.IParser):
     @property
     def most_popular_good_ids(self):
         return self._most_popular_good_ids
+
+    @property
+    def answers_for_train(self):
+        return self._answers_for_train
 
     @staticmethod
     def _sorted_by_date_train_data(df):
@@ -62,8 +86,8 @@ class CommonParser(parser.IParser):
 
     def _load_formatted_train_data(self, filepath_or_buffer):
         df = pd.read_csv(filepath_or_buffer, nrows=self._n_rows)
-        dfgroup = df[["chknum", "person_id", "month", "day"]] \
-            .groupby(["chknum", "person_id", "month", "day"], as_index=False) \
+        dfgroup = df[["person_id", "month", "day", "chknum"]] \
+            .groupby(["person_id", "month", "day", "chknum"], as_index=False) \
             .agg(list)
 
         dictionary = {}
@@ -83,8 +107,9 @@ class CommonParser(parser.IParser):
             self._num_popular_ids).index.tolist()
         self._help_data = self._sorted_by_date_train_data(df)
 
-        result = df.groupby(["chknum", "person_id", "month", "day"],
+        result = df.groupby(["person_id", "month", "day", "chknum"],
                             as_index=False).agg(list)
+
         self._chknums = df["chknum"].unique().tolist()
         list_of_instances = list(
             result.drop("good_id", axis=1).T.to_dict().values()
@@ -136,12 +161,12 @@ class CommonParser(parser.IParser):
             result[elem] += 1
         return result
 
-    def to_final_label(self, interim_label):
+    @staticmethod
+    def to_final_label(interim_label):
         result = []
         for i, elem in enumerate(interim_label):
-            if elem == 0:
-                continue
-            result += [i] * elem
+            if elem != 0:
+                result += [i] * elem
         return result
 
     def parse_train_data(self, filepath_or_buffer):
@@ -149,15 +174,17 @@ class CommonParser(parser.IParser):
             filepath_or_buffer
         )
 
-        assert len(self._list_of_instances) == len(self._list_of_labels), \
-            "Instances of read data art not equal to their labels."
+        if len(self._list_of_instances) != len(self._list_of_labels):
+            raise ValueError(f"Instances of read data are not equal to their"
+                             f"labels: {len(self._list_of_instances)} != "
+                             f"{len(self._list_of_labels)}")
+
         assert self.to_final_label(self.to_interim_label(
             [24, 42, 42])) == [24, 42, 42], \
             "Processing data methods are not mutually inverse."
 
-        self._list_of_samples = list(
-            map(self._to_sample, self._list_of_instances)
-        )
+        self._list_of_samples = list(map(self._to_sample,
+                                         self._list_of_instances))
 
         if self._debug:
             print(len(self._list_of_instances))
@@ -168,6 +195,9 @@ class CommonParser(parser.IParser):
         self._train_samples_num = int(self._proportion *
                                       len(self._list_of_labels))
         self._chknums = self._chknums[self._train_samples_num:]
+        self._answers_for_train = [
+            sorted(x) for x in self._list_of_labels[self._train_samples_num:]
+        ]
 
     def parse_test_data(self, filepath_or_buffer_set,
                         filepath_or_buffer_menu):
@@ -198,6 +228,9 @@ class CommonParser(parser.IParser):
         return train_samples, train_labels
 
     def get_validation_data(self):
+        if self._proportion == 1.0:
+            return None, None
+
         validation_samples = self._list_of_samples[self._train_samples_num:]
 
         validation_labels = list(map(

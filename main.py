@@ -5,7 +5,7 @@ def test():
     sh = shell.Shell()
     sh.train("data/tinkoff/train.csv")
     test_result, quality = sh.test()
-    print(f"Metrics: {test_result}")
+    print(f"Metric: {test_result}")
     print(f"Quality satisfaction: {quality}")
     sh.predict("data/tinkoff/test.csv", "data/tinkoff/menu.csv")
     sh.output()
