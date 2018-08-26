@@ -142,6 +142,26 @@ class MeanSquaredError(Metric):
 class MeanF1Score(Metric):
 
     @staticmethod
+    def _format_data(validation_label, prediction):
+        """
+        Formatted input data.
+
+        :param prediction: list
+            Predicted data.
+
+        :param validation_label: list
+            Known data.
+
+        :return: tuple (list, list)
+            Return tuple with formatted lists.
+        """
+        int_prediction = [int(round(x)) for x in prediction]
+
+        int_prediction = CommonParser.to_final_label(int_prediction)
+        validation_label = CommonParser.to_final_label(validation_label)
+        return int_prediction, validation_label
+
+    @staticmethod
     def zero_check(conj, arr_len):
         """
         Check if goods list is empty.
@@ -164,13 +184,13 @@ class MeanF1Score(Metric):
     @staticmethod
     def conjunction(lst1, lst2):
         """
-        Calculate conjunction of two arrays.
+        Calculate conjunction of two arrays. Arrays must be sorted!
 
         :param lst1: list
-            First array.
+            First sorted array.
 
         :param lst2: list
-            Second arry.
+            Second sorted arry.
 
         :return: int
             Cardinality of conjunction.
@@ -199,7 +219,7 @@ class MeanF1Score(Metric):
 
         return result
 
-    def test_check(self, validation_label, prediction):
+    def test_check(self, validation_label, prediction, need_format=False):
         """
         Main testing function for one list of data.
 
@@ -209,27 +229,25 @@ class MeanF1Score(Metric):
         :param validation_label: list
             Known data.
 
+        :param need_format: bool, optional (default=False)
+            Used to define that data is not formatted.
+
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
-        assert len(validation_label) == len(prediction), \
-            f"Labels and predictions have different sizes: " \
-            f"{len(validation_label)} != {len(prediction)}"
+        if need_format:
+            validation_label, prediction = self._format_data(validation_label,
+                                                             prediction)
 
-        int_prediction = [int(round(x)) for x in prediction]
+        conj = self.conjunction(prediction, validation_label)
 
-        int_prediction = CommonParser.to_final_label(int_prediction)
-        validation_label = CommonParser.to_final_label(validation_label)
-
-        conj = self.conjunction(int_prediction, validation_label)
-
-        p = self.zero_check(conj, len(int_prediction))
+        p = self.zero_check(conj, len(prediction))
         r = self.zero_check(conj, len(validation_label))
         if p == 0 and r == 0:
             return 0
         return 2 * p * r / (p + r)
 
-    def test(self, validation_labels, predictions):
+    def test(self, validation_labels, predictions, need_format=False):
         """
         Main testing function.
 
@@ -239,6 +257,9 @@ class MeanF1Score(Metric):
         :param predictions: list
             List of lists with predicted data.
 
+        :param need_format: bool, optional (default=False)
+            Used to define that data is not formatted.
+
         :return: float
             A numerical estimate of the accuracy of the algorithm.
         """
@@ -247,7 +268,8 @@ class MeanF1Score(Metric):
 
         num_checks = len(validation_labels)
         result = [self.test_check(validation_labels[i],
-                                  predictions[i]) for i in range(num_checks)]
+                                  predictions[i],
+                                  need_format) for i in range(num_checks)]
         self._cache = sum(result) / num_checks
         return self._cache
 
@@ -255,14 +277,14 @@ class MeanF1Score(Metric):
 class TestModel(model.IModel):
 
     def train(self, train_samples, train_labels, **kwargs):
-        assert len(train_samples) == len(train_labels), \
-            f"Samples and labels have different sizes: " \
-            f"{len(train_samples)} != {len(train_labels)}"
+        if len(train_samples) != len(train_labels):
+            raise ValueError(f"Samples and labels have different sizes: "
+                             f"{len(train_samples)} != {len(train_labels)}")
 
     def predict(self, samples, **kwargs):
-        assert len(samples) == len(kwargs["labels"]), \
-            f"Samples and labels have different sizes: " \
-            f"{len(samples)} != {len(kwargs['labels'])}"
+        if len(samples) != len(kwargs["labels"]):
+            raise ValueError(f"Samples and labels have different sizes: "
+                             f"{len(samples)} != {len(kwargs['labels'])}")
 
         predictions = []
         for _, label in zip(samples, kwargs["labels"]):
