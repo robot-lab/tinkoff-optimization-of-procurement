@@ -3,16 +3,16 @@ import numpy as np
 from . import model
 
 
-class EatMostPopular(model.IModel):
+class MostPopular(model.IModel):
 
     def __init__(self, **kwargs):
         self.num_popular_ids = kwargs["num_popular_ids"]
         self.most_popular_goods = dict()
 
     def train(self, train_samples, train_labels, **kwargs):
-        assert len(train_samples) == len(train_labels), \
-            f"Samples and labels have different sizes: " \
-            f"{len(train_samples)} != {len(train_labels)}"
+        if len(train_samples) != len(train_labels):
+            raise ValueError(f"Samples and labels have different sizes: "
+                             f"{len(train_samples)} != {len(train_labels)}")
         self.most_popular_goods = kwargs["most_popular_goods"]
 
     def predict(self, samples, **kwargs):
@@ -23,7 +23,7 @@ class EatMostPopular(model.IModel):
         return predictions
 
 
-class EatSameAsBefore(model.IModel):
+class SameAsBefore(model.IModel):
 
     def __init__(self, **kwargs):
         self.num_popular_ids = kwargs["num_popular_ids"]
@@ -31,9 +31,9 @@ class EatSameAsBefore(model.IModel):
         self.most_popular_goods = dict()
 
     def train(self, train_samples, train_labels, **kwargs):
-        assert len(train_samples) == len(train_labels), \
-            f"Samples and labels have different sizes: " \
-            f"{len(train_samples)} != {len(train_labels)}"
+        if len(train_samples) != len(train_labels):
+            raise ValueError(f"Samples and labels have different sizes: "
+                             f"{len(train_samples)} != {len(train_labels)}")
 
         self.most_popular_goods = kwargs["most_popular_goods"]
 
@@ -51,7 +51,7 @@ class EatSameAsBefore(model.IModel):
         return predictions
 
 
-class EatMostPopularFromOwnOrders(model.IModel):
+class MostPopularFromOwnOrders(model.IModel):
 
     def __init__(self, **kwargs):
         self.num_popular_ids = kwargs["num_popular_ids"]
@@ -90,9 +90,9 @@ class EatMostPopularFromOwnOrders(model.IModel):
                 person_orders[indices] = 1
 
     def train(self, train_samples, train_labels, **kwargs):
-        assert len(train_samples) == len(train_labels), \
-            f"Samples and labels have different sizes: " \
-            f"{len(train_samples)} != {len(train_labels)}"
+        if len(train_samples) != len(train_labels):
+            raise ValueError(f"Samples and labels have different sizes: "
+                             f"{len(train_samples)} != {len(train_labels)}")
 
         self.most_popular_goods = kwargs["most_popular_goods"]
         self.most_popular_good_ids = kwargs["most_popular_good_ids"]
@@ -109,6 +109,7 @@ class EatMostPopularFromOwnOrders(model.IModel):
             else:
                 self.orders[persons_id] += np.array(label)
 
+        #print(self.orders[0])
         self.process_orders()
 
     def predict(self, samples, **kwargs):
