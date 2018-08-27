@@ -18,29 +18,32 @@ class CommonParser(parser.IParser):
         self._answers_for_train = list()
 
         self._proportion = proportion
+        if type(self._proportion) is not float:
+            raise ValueError(f"proportion parameter must be float: "
+                             f"got {type(self._proportion)}.")
         if not (0.0 < self._proportion <= 1.0):
             raise ValueError(f"proportion parameter must be in (0.0, 1.0]: "
-                             f"you passed {self._proportion}.")
+                             f"got {self._proportion}.")
 
         self._raw_date = raw_date
         if type(self._raw_date) is not bool:
             raise ValueError(f"raw_date parameter must be bool: "
-                             f"you passed {type(self._raw_date)}.")
+                             f"got {type(self._raw_date)}.")
 
         self._n_rows = n_rows
         if not (self._n_rows is None or type(self._n_rows) is int):
             raise ValueError(f"n_rows parameter must be None or int: "
-                             f"you passed {type(self._n_rows)}.")
+                             f"got {type(self._n_rows)}.")
 
         self._num_popular_ids = num_popular_ids
         if type(self._num_popular_ids) is not int:
             raise ValueError(f"num_popular_ids parameter must be int: "
-                             f"you passed {type(self._num_popular_ids)}.")
+                             f"got {type(self._num_popular_ids)}.")
 
         self._debug = debug
         if type(self._debug) is not bool:
             raise ValueError(f"debug parameter must be bool: "
-                             f"you passed {type(self._debug)}.")
+                             f"got {type(self._debug)}.")
 
     @property
     def chknums(self):

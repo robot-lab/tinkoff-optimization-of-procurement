@@ -25,7 +25,8 @@ setup_logging(log_config_path)
 @decor_class_logging_error_and_time()
 class Shell:
 
-    def __init__(self, existing_model_name=None, existing_parsed_json_dict=None):
+    def __init__(self, existing_model_name=None,
+                 existing_parsed_json_dict=None):
         """
         Constructor which initialize class fields.
 
@@ -40,7 +41,8 @@ class Shell:
         self._config_parser = ConfigParser(existing_parsed_json_dict,
                                            ml_config_path)
         self._tester = Tester(
-            self._config_parser.get_metric()
+            self._config_parser.get_metric(),
+            **self._config_parser.get_tester_params()
         )
 
         self._model_parameters = self._config_parser.get_params_for("model")
@@ -64,9 +66,8 @@ class Shell:
 
         # ATTENTION: pickle dumps is not equal to created model and parser
         # classes.
-        if not existing_model_name:
-            assert self._check_interfaces(), \
-                "Model or parser is not subclass of IModel or IParser."
+        if existing_model_name is None:
+            self._check_interfaces()
 
     @property
     def predictions(self):
@@ -78,33 +79,17 @@ class Shell:
         """
         return self._predictions
 
-    # ATTENTION: this method cannot be static because logger doesn't process
-    # static methods.
-    def _check_interface(self, instance, parent_class):
-        """
-        Checks the classes on the according interfaces.
-
-        :param instance: object
-            Object to check.
-
-        :param parent_class: class
-            Class to verify.
-
-        :return: bool
-            Results of verifying.
-        """
-        return isinstance(instance, parent_class)
-
     def _check_interfaces(self):
         """
         Checks parser and model classes on the according interfaces.
-
-        :return: bool
-            Status of verifying.
         """
-        check1 = self._check_interface(self._parser, IParser)
-        check2 = self._check_interface(self._model, IModel)
-        return check1 and check2
+        if not isinstance(self._parser, IParser):
+            raise ValueError(f"Parser is not subclass of IParser. "
+                             f"Provided type: {type(self._parser)}")
+
+        if not isinstance(self._model, IModel):
+            raise ValueError(f"Model is not subclass of IModel. "
+                             f"Provided type: {type(self._parser)}")
 
     def _format_predictions_by_menu(self, chknums, predictions):
         """

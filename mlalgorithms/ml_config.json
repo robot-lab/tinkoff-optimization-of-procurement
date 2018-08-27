@@ -303,6 +303,15 @@
   ],
 
   "selected_metric": "f1",
+  "tester_params": [
+    {
+      "border": 0.5,
+      "invert_list": [
+        "MeanF1Score"
+      ]
+    }
+  ],
+
   "metrics": {
     "mse": "MeanSquaredError",
     "f1": "MeanF1Score"
