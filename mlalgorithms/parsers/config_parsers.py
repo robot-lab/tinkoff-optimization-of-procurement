@@ -129,4 +129,10 @@ class ConfigParser:
         return self["metrics"][metric_name]
 
     def get_tester_params(self):
+        """
+        Get parameters from config for tester class.
+
+        :return: dict
+            Extract parameters from parsed json config.
+        """
         return self["tester_params"][0]
