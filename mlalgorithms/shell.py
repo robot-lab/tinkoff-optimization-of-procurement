@@ -28,7 +28,7 @@ class Shell:
     def __init__(self, existing_model_name=None,
                  existing_parsed_json_dict=None):
         """
-        Constructor which initialize class fields.
+        Constructor which initializes class fields.
 
         :param existing_model_name: str, optional (default=None)
             Name of the existing model file.
