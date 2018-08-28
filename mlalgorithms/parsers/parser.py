@@ -12,10 +12,10 @@ class IParser(abc.ABC):
         Clean data frame from NaN values.
         Method will be improved when we get dataset.
 
-        :param df: pd.DataFrame
+        :param df: pd.DataFrame.
             Data frame object.
 
-        :return: pd.DataFrame
+        :return: pd.DataFrame.
             Cleaned data frame object.
         """
         return df.dropna()
@@ -25,10 +25,10 @@ class IParser(abc.ABC):
         """
         Convert data frame to list.
 
-        :param df: pd.DataFrame
+        :param df: pd.DataFrame.
             Data frame object.
 
-        :return: list
+        :return: list.
             Converted list.
         """
         return df.values.tolist()
@@ -38,10 +38,10 @@ class IParser(abc.ABC):
         """
         Convert categorical variable into dummy/indicator variables.
 
-        :param df: pd.DataFrame
+        :param df: pd.DataFrame.
             Data frame object.
 
-        :return: pd.DataFrame
+        :return: pd.DataFrame.
             Converted with one-hot encoding data frame.
         """
         return pd.get_dummies(df)
@@ -52,18 +52,18 @@ class IParser(abc.ABC):
 
         :param filepath_or_buffer: str, pathlib.Path, py._path.local.LocalPath
             or any object with a read() method (such as a file handle or
-            StringIO)
+            StringIO).
             The string could be a URL. Valid URL schemes include http, ftp, s3,
             and file. For file URLs, a host is expected. For instance, a local
             file could be file://localhost/path/to/table.csv.
 
-        :param to_list: bool, optional (default=False)
+        :param to_list: bool, optional (default=False).
             Specifies whether to return the list.
 
-        :param kwargs: dict
+        :param kwargs: dict, optional(default={}).
             Passes additional arguments to the pd.read_csv method.
 
-        :return: pd.DataFrame, list
+        :return: pd.DataFrame, list.
             Returns result of pd.read_csv method or converted list.
         """
         df = pd.read_csv(filepath_or_buffer, **kwargs)
@@ -78,7 +78,7 @@ class IParser(abc.ABC):
         """
         Return chknum lists for formatted output.
 
-        :return: list
+        :return: list.
             List with chknums.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -89,7 +89,7 @@ class IParser(abc.ABC):
         """
         Return most popular good ids calculated during parsing.
 
-        :return: list
+        :return: list.
             List with most popular good ids.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -99,7 +99,7 @@ class IParser(abc.ABC):
         """
         Calculate max good id for transforming to interim labels.
 
-        :return: int
+        :return: int.
             Max good id from parsed data.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -109,10 +109,10 @@ class IParser(abc.ABC):
         """
         Find daily menu by chknum number.
 
-        :param chknum: str
+        :param chknum: str.
             Chknum identifier.
 
-        :return: list
+        :return: list.
             List with daily menu which contains good ids for day with chknum.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -122,10 +122,10 @@ class IParser(abc.ABC):
         """
         Transform label to interim label for model training.
 
-        :param label: float
+        :param label: float.
             Value to transform.
 
-        :return: float
+        :return: float.
             Transformed value.
         """
         return math.log(label + 1)
@@ -136,10 +136,10 @@ class IParser(abc.ABC):
         """
         Restore the original value of interim label.
 
-        :param interim_label: float
+        :param interim_label: float.
             Value to restore.
 
-        :return: float
+        :return: float.
             Restored value.
         """
         return math.exp(interim_label) - 1
@@ -170,14 +170,19 @@ class IParser(abc.ABC):
 
         :param filepath_or_buffer_set: str, pathlib.Path,
             py._path.local.LocalPath or any object with a read() method
-            (such as a file handle or StringIO)
+            (such as a file handle or StringIO).
             The string could be a URL. Valid URL schemes include http, ftp, s3,
             and file. For file URLs, a host is expected. For instance, a local
             file could be file://localhost/path/to/table.csv.
 
-        :param filepath_or_buffer_menu: same as filepath_or_buffer_set.
+        :param filepath_or_buffer_menu: str, pathlib.Path,
+            py._path.local.LocalPath or any object with a read() method
+            (such as a file handle or StringIO).
+            The string could be a URL. Valid URL schemes include http, ftp, s3,
+            and file. For file URLs, a host is expected. For instance, a local
+            file could be file://localhost/path/to/table.csv.
 
-        :return: pd.DataFrame, list
+        :return: pd.DataFrame, list.
             Returns result of pd.read_csv method or converted list.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -187,7 +192,7 @@ class IParser(abc.ABC):
         """
         Get data for model training from training set.
 
-        :return: tuple of two array-like, sparse matrix
+        :return: tuple of two array-like, sparse matrix.
             Returns parsed data.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -197,7 +202,7 @@ class IParser(abc.ABC):
         """
         Get data for test model prediction from validate set.
 
-        :return: tuple of two array-like, sparse matrix
+        :return: tuple of two array-like, sparse matrix.
             Returns parsed data.
         """
         raise NotImplementedError("Called abstract class method!")
@@ -207,7 +212,7 @@ class IParser(abc.ABC):
         """
         Get data for model prediction from test set.
 
-        :return: tuple of two array-like, sparse matrix
+        :return: tuple of two array-like, sparse matrix.
             Returns parsed data.
         """
         raise NotImplementedError("Called abstract class method!")

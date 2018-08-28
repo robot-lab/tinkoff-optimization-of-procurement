@@ -3,6 +3,8 @@ import pandas as pd
 
 from sklearn.cluster import KMeans
 
+import mlalgorithms.checks as checks
+
 from . import model
 
 
@@ -19,6 +21,10 @@ class ClusteringModel(model.IModel):
         self.largest_cluster_goods = []
 
     def train(self, train_samples, train_labels, **kwargs):
+        checks.check_equality(len(train_samples), len(train_labels),
+                              message="Samples and labels have different "
+                                      "sizes")
+
         persons_ids = [person_data[0] for person_data in train_samples]
         for persons_id, label in zip(persons_ids, train_labels):
             if self.orders.get(persons_id) is None:

@@ -1,10 +1,13 @@
+import mlalgorithms.checks as checks
+
+
 class IModel:
 
     def __init__(self, model=None):
         """
         Constructor of abstract model class which initialize model for working.
 
-        :param model: object
+        :param model: object.
             Instance of model class.
         """
         if type(self) is IModel:
@@ -16,15 +19,19 @@ class IModel:
         """
         Train current model.
 
-        :param train_samples: array-like, sparse matrix
+        :param train_samples: array-like, sparse matrix.
             Training data.
 
-        :param train_labels: array-like, sparse matrix
+        :param train_labels: array-like, sparse matrix.
             Target values. Will be cast to train_samples’s dtype if necessary.
 
-        :param kwargs: dict
+        :param kwargs: dict, optional(default={}).
             Additional keyword arguments.
         """
+        checks.check_equality(len(train_samples), len(train_labels),
+                              message="Samples and labels have different "
+                                      "sizes")
+
         self.model.fit(train_samples, train_labels, **kwargs)
 
     def predict(self, samples, **kwargs):
@@ -32,13 +39,13 @@ class IModel:
         Makes predictions based on the transmitted data.
         User must override this method.
 
-        :param samples: array-like, sparse matrix
+        :param samples: array-like, sparse matrix.
             Data for prediction.
 
-        :param kwargs: dict
+        :param kwargs: dict, optional(default={}).
             Additional keyword arguments.
 
-        :return: array
+        :return: array.
             Returns predicted values.
         """
         predictions = []
