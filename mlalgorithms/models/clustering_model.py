@@ -9,7 +9,7 @@ from . import model
 class ClusteringModel(model.IModel):
 
     def __init__(self, **kwargs):
-        self.kmeans = KMeans(**kwargs)
+        super().__init__(KMeans(**kwargs))
 
         self.COL_NAME = "cluster"
         self.CLUSTER_BORDER = 6
@@ -27,14 +27,14 @@ class ClusteringModel(model.IModel):
                 self.orders[persons_id] += np.array(label)
 
         self.clustering_table = pd.DataFrame(
-            self.kmeans.fit_predict(pd.DataFrame.from_dict(self.orders,
-                                                           orient="index")),
+            self.model.fit_predict(pd.DataFrame.from_dict(self.orders,
+                                                          orient="index")),
             columns=[self.COL_NAME]
         )
 
         cluster_id = self.clustering_table[self.COL_NAME]\
             .value_counts().index[0]
-        larg_clust_center = self.kmeans.cluster_centers_[cluster_id]
+        larg_clust_center = self.model.cluster_centers_[cluster_id]
         self.largest_cluster_goods = (larg_clust_center >=
                                       self.CLUSTER_BORDER).astype(np.int)
 
@@ -43,7 +43,7 @@ class ClusteringModel(model.IModel):
         for i in samples:
             if i[0] in self.clustering_table.index:
                 cluster_id = self.clustering_table.at[i[0], self.COL_NAME]
-                clust_center = self.kmeans.cluster_centers_[cluster_id]
+                clust_center = self.model.cluster_centers_[cluster_id]
                 prediction = (clust_center >=
                               self.CLUSTER_BORDER).astype(np.int)
             else:

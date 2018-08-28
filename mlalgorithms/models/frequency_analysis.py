@@ -6,6 +6,7 @@ from . import model
 class MostPopular(model.IModel):
 
     def __init__(self, **kwargs):
+        super().__init__()
         self.num_popular_ids = kwargs["num_popular_ids"]
         self.most_popular_goods = dict()
 
@@ -26,6 +27,7 @@ class MostPopular(model.IModel):
 class SameAsBefore(model.IModel):
 
     def __init__(self, **kwargs):
+        super().__init__()
         self.num_popular_ids = kwargs["num_popular_ids"]
         self.latest_orders = dict()
         self.most_popular_goods = dict()
@@ -54,6 +56,7 @@ class SameAsBefore(model.IModel):
 class MostPopularFromOwnOrders(model.IModel):
 
     def __init__(self, **kwargs):
+        super().__init__()
         self.num_popular_ids = kwargs["num_popular_ids"]
         self.orders = dict()
         self.most_popular_goods = dict()
@@ -109,7 +112,6 @@ class MostPopularFromOwnOrders(model.IModel):
             else:
                 self.orders[persons_id] += np.array(label)
 
-        #print(self.orders[0])
         self.process_orders()
 
     def predict(self, samples, **kwargs):

@@ -1,9 +1,17 @@
-import abc
+class IModel:
 
+    def __init__(self, model=None):
+        """
+        Constructor of abstract model class which initialize model for working.
 
-class IModel(abc.ABC):
+        :param model: object
+            Instance of model class.
+        """
+        if type(self) is IModel:
+            raise Exception("IModel is an abstract class and cannot be "
+                            "instantiated directly")
+        self.model = model
 
-    @abc.abstractmethod
     def train(self, train_samples, train_labels, **kwargs):
         """
         Train current model.
@@ -17,15 +25,14 @@ class IModel(abc.ABC):
         :param kwargs: dict
             Additional keyword arguments.
         """
-        raise NotImplementedError("Called abstract class method!")
+        self.model.fit(train_samples, train_labels, **kwargs)
 
-    @abc.abstractmethod
-    def predict(self, sample, **kwargs):
+    def predict(self, samples, **kwargs):
         """
         Makes predictions based on the transmitted data.
         User must override this method.
 
-        :param sample: array-like, sparse matrix
+        :param samples: array-like, sparse matrix
             Data for prediction.
 
         :param kwargs: dict
@@ -34,4 +41,8 @@ class IModel(abc.ABC):
         :return: array
             Returns predicted values.
         """
-        raise NotImplementedError("Called abstract class method!")
+        predictions = []
+        for sample in samples:
+            prediction = self.model.predict(np.array(sample).reshape(1, -1))[0]
+            predictions.append(prediction)
+        return predictions
