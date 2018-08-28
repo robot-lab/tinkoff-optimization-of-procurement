@@ -178,13 +178,14 @@ class CommonParser(parser.IParser):
         )
 
         if len(self._list_of_instances) != len(self._list_of_labels):
-            raise ValueError(f"Instances of read data are not equal to their"
+            raise ValueError(f"Instances of read data are not equal to their "
                              f"labels: {len(self._list_of_instances)} != "
                              f"{len(self._list_of_labels)}")
 
-        assert self.to_final_label(self.to_interim_label(
-            [24, 42, 42])) == [24, 42, 42], \
-            "Processing data methods are not mutually inverse."
+        if self.to_final_label(self.to_interim_label(
+           [24, 42, 42])) != [24, 42, 42]:
+            raise NotImplementedError("Processing data methods are not "
+                                      "mutually inverse.")
 
         self._list_of_samples = list(map(self._to_sample,
                                          self._list_of_instances))

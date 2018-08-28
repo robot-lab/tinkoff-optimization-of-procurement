@@ -293,8 +293,8 @@ class MeanF1Score(IMetric):
             A numerical estimate of the accuracy of the algorithm. 1.0 is
             perfect prediction.
         """
-        assert self.conjunction([1, 1, 2, 3, 5], [1, 2, 4, 5]) == 3, \
-            "There are error in conjunction method!"
+        if self.conjunction([1, 1, 2, 3, 5], [1, 2, 4, 5]) != 3:
+            raise NotImplementedError("There are error in conjunction method!")
 
         num_checks = len(validation_labels)
         result = [self.test_check(validation_labels[i],

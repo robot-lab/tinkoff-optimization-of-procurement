@@ -124,6 +124,10 @@ class Shell:
                 prediction.extend(self._parser.most_popular_good_ids)
 
     def _format_predictions(self):
+        """
+        Format raw predictions, process empty predictions and remove extra
+        items from predictions.
+        """
         if self._predictions is None:
             return
 
@@ -138,9 +142,9 @@ class Shell:
         self._format_predictions_by_menu(self._parser.chknums,
                                          self._predictions)
 
-    def _get_formatted_predictions(self):
+    def _concat_predictions_with_chknums(self):
         """
-        Format raw results of prediction.
+        Concat results of prediction with chknums for output.
 
         :return: pd.DataFrame
             Formatted predictions.
@@ -267,7 +271,7 @@ class Shell:
             print("Nothing to output!")
             return
 
-        out = self._get_formatted_predictions()
+        out = self._concat_predictions_with_chknums()
         out.to_csv(output_filename, index=False)
 
     def load_model(self, filename="model.mdl"):
@@ -275,7 +279,7 @@ class Shell:
         Load trained model with all parameters from file.
 
         :param filename: str, optional (default="model.mdl")
-            Filename of model.
+            File name of model.
         """
         with open(filename, "rb") as input_stream:
             self._model = pickle.loads(input_stream.read())
@@ -285,7 +289,7 @@ class Shell:
         Save trained model with all parameters to file.
 
         :param filename: str, optional (default="model.mdl")
-            Filename of model.
+            File name of model.
         """
         with open(filename, "wb") as output_stream:
             output_stream.write(pickle.dumps(self._model))
