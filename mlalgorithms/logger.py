@@ -115,10 +115,13 @@ def decor_timer(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         start = time.time()
+        get_logger().debug(f"{func.__name__} started at "
+                           f"{time.asctime(time.gmtime(start))}.")
         result = func(*args, **kwargs)
         duration = time.time() - start
         get_logger().debug(
-            f"{func.__name__} completed in {duration * 1000:.8f}ms.")
+            f"{func.__name__} completed in {duration * 1000:.8f}ms."
+        )
         return result
     return wrapper
 
