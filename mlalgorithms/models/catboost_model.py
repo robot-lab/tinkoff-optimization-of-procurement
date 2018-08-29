@@ -5,7 +5,7 @@ from catboost import CatBoostRegressor
 from . import model
 
 
-class CatBoostModel(model.IModel):
+class CatBoostModel(model.SimpleModel):
 
     def __init__(self, **kwargs):
         super().__init__(MultiOutputRegressor(CatBoostRegressor(**kwargs)))

@@ -4,13 +4,13 @@ from sklearn.tree import ExtraTreeRegressor
 from . import model
 
 
-class DecisionTreeModel(model.IModel):
+class DecisionTreeModel(model.SimpleModel):
 
     def __init__(self, **kwargs):
         super().__init__(DecisionTreeRegressor(**kwargs))
 
 
-class ExtraTreeModel(model.IModel):
+class ExtraTreeModel(model.SimpleModel):
 
     def __init__(self, **kwargs):
         super().__init__(ExtraTreeRegressor(**kwargs))
