@@ -31,6 +31,7 @@ print(f"Metric: {test_result}")
 print(f"Quality satisfaction: {quality}")
 sh.predict("data/tinkoff/test.csv", "data/tinkoff/menu.csv")
 sh.output()
+
 ```
 
 You can find more examples in [the Wiki](https://github.com/robot-lab/tinkoff-optimization-of-procurement/wiki).
