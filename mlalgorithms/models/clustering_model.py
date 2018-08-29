@@ -8,7 +8,7 @@ import mlalgorithms.checks as checks
 from . import model
 
 
-class ClusteringModel(model.IModel):
+class ClusteringModel(model.SimpleModel):
 
     def __init__(self, **kwargs):
         super().__init__(KMeans(**kwargs))
