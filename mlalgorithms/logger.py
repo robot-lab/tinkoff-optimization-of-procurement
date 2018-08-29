@@ -71,8 +71,8 @@ def setup_logging(config_filename="log_config.json"):
     logging.config.dictConfig(config)
     _configure_logger()
 
-    # ATTENTION! Do not see at warning on next code line, in _configure_logger
-    # method we add newline method for Logger instance.
+    # ATTENTION! Do not see at the warning on next code line, in
+    # _configure_logger method we add newline method for Logger instance.
     get_logger().newline()
 
 
