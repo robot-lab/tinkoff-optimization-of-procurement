@@ -102,11 +102,9 @@ class Shell:
         :return: list.
             Right predictions without inconsistencies with the menu.
         """
-        for chknum, pred_goods in zip(chknums, predictions):
+        for chknum, i in zip(chknums, range(len(predictions))):
             daily_menu = self._parser.get_menu_on_day_by_chknum(chknum)
-            for it, pred_good in enumerate(pred_goods):
-                if pred_good not in daily_menu:
-                    pred_goods.pop(it)
+            predictions[i] = ([x for x in predictions[i] if x in daily_menu])
 
     def _process_empty_predictions(self, predictions):
         """
