@@ -20,7 +20,7 @@ class ClusteringModel(model.SimpleModel):
         self.clustering_table = pd.DataFrame()
         self.largest_cluster_goods = []
 
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         checks.check_equality(len(train_samples), len(train_labels),
                               message="Samples and labels have different "
                                       "sizes")

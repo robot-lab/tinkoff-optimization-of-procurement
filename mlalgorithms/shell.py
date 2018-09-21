@@ -163,7 +163,7 @@ class Shell:
         """
         return self._config_parser[flag_name]
 
-    def train(self, filepath_or_buffer):
+    def fit(self, filepath_or_buffer):
         """
         Train model on input dataset.
 
@@ -179,7 +179,7 @@ class Shell:
         train_samples, train_labels = self._parser.get_train_data()
         if (self._config_parser["selected_model"] == "MostPopular" or
                 self._config_parser["selected_model"] == "SameAsBefore"):
-            self._model.train(
+            self._model.fit(
                 train_samples, train_labels,
                 most_popular_goods=self._parser.to_interim_label(
                     self._parser.most_popular_good_ids
@@ -187,7 +187,7 @@ class Shell:
             )
         elif (self._config_parser["selected_model"] ==
               "MostPopularFromOwnOrders"):
-            self._model.train(
+            self._model.fit(
                 train_samples, train_labels,
                 most_popular_goods=self._parser.to_interim_label(
                     self._parser.most_popular_good_ids
@@ -196,7 +196,7 @@ class Shell:
                 max_good_id=self._parser.max_good_id()
             )
         else:
-            self._model.train(train_samples, train_labels)
+            self._model.fit(train_samples, train_labels)
 
         if self._parser_parameters["params"]["proportion"] != 1.0:
             validation_samples, self._validation_labels = \

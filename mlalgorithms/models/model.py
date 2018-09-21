@@ -8,7 +8,7 @@ import mlalgorithms.checks as checks
 class IModel(abc.ABC):
 
     @abc.abstractmethod
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         """
         Train current model.
 
@@ -55,7 +55,7 @@ class SimpleModel(IModel):
                             "instantiated directly")
         self.model = model
 
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         """
         Train current model.
 
