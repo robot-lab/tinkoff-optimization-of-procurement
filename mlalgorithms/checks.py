@@ -14,12 +14,12 @@ def check_types(value, *types, var_name="value"):
     if len(types) == 0:
         raise ValueError("Types list is empty.")
 
-    bad_type = True
+    is_bad_type = True
     for type_ in types:
         if type(value) is type_:
-            bad_type = False
+            is_bad_type = False
 
-    if bad_type:
+    if is_bad_type:
         raise ValueError(f"{var_name} parameter must be {types}: "
                          f"got {type(value)}.")
 

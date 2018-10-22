@@ -298,7 +298,7 @@ class MeanF1Score(IMetric):
 
 class TestModel(model.IModel):
 
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         checks.check_equality(len(train_samples), len(train_labels),
                               message="Samples and labels have different "
                                       "sizes")

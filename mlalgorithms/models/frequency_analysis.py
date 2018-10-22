@@ -12,7 +12,7 @@ class MostPopular(model.IModel):
         self.num_popular_ids = num_popular_ids
         self.most_popular_goods = dict()
 
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         checks.check_equality(len(train_samples), len(train_labels),
                               message="Samples and labels have different "
                                       "sizes")
@@ -34,7 +34,7 @@ class SameAsBefore(model.IModel):
         self.latest_orders = dict()
         self.most_popular_goods = dict()
 
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         checks.check_equality(len(train_samples), len(train_labels),
                               message="Samples and labels have different "
                                       "sizes")
@@ -106,7 +106,7 @@ class MostPopularFromOwnOrders(model.IModel):
                 person_orders[not_in_indices] = 0
                 person_orders[indices] = 1
 
-    def train(self, train_samples, train_labels, **kwargs):
+    def fit(self, train_samples, train_labels, **kwargs):
         checks.check_equality(len(train_samples), len(train_labels),
                               message="Samples and labels have different "
                                       "sizes")
