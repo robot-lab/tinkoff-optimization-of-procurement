@@ -32,7 +32,7 @@ class ConfigParser:
 
     def __getitem__(self, item):
         """
-        Add dict-like interface: config[item]
+        Add dict-like interface: config[item].
 
         :param item: str.
             Parameter name in config file.
